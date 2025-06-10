@@ -13,9 +13,11 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import GardenerListingPage from './pages/GardenerListingPage';
 import GardenerProfilePage from './pages/GardenerProfilePage';
 import BecomeGardenerPage from './pages/BecomeGardenerPage';
+import AdminDashboard from './pages/AdminDashboard';
 
 const queryClient = new QueryClient();
 
@@ -31,9 +33,11 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/gardeners" element={<GardenerListingPage />} />
               <Route path="/gardeners/:id" element={<GardenerProfilePage />} />
               <Route path="/become-gardener" element={<BecomeGardenerPage />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

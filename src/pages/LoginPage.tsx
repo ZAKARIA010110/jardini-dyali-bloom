@@ -28,7 +28,19 @@ const LoginPage = () => {
     try {
       await login(email, password);
       toast.success('تم تسجيل الدخول بنجاح');
-      navigate('/');
+      
+      // Check if user is admin and redirect accordingly
+      const storedUser = localStorage.getItem('jardini_user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        if (userData.userType === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       toast.error('خطأ في البريد الإلكتروني أو كلمة المرور');
     }
@@ -104,7 +116,7 @@ const LoginPage = () => {
                 to="/forgot-password" 
                 className="text-[#4CAF50] hover:text-[#45a049] text-sm font-medium"
               >
-                {t('auth.forgot.password')}
+                {t('auth.forgot.password') || 'نسيت كلمة المرور؟'}
               </Link>
             </div>
 
@@ -116,6 +128,13 @@ const LoginPage = () => {
             >
               {loading ? 'جاري تسجيل الدخول...' : t('auth.login')}
             </Button>
+
+            {/* Admin Login Info */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-600 text-center">
+                للوصول إلى لوحة الإدارة: admin@jardini.ma / admin123
+              </p>
+            </div>
           </div>
 
           {/* Sign Up Link */}

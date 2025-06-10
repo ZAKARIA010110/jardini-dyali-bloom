@@ -2,7 +2,7 @@
 export interface User {
   id: string;
   email: string;
-  userType: 'homeowner' | 'gardener';
+  userType: 'homeowner' | 'gardener' | 'admin';
   name?: string;
   avatar?: string;
 }

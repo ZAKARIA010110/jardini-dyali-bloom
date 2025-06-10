@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -23,11 +22,16 @@ const SignupPage = () => {
   const [emailSent, setEmailSent] = useState(false);
   
   const { t } = useLanguage();
-  const { signup, loading } = useAuth();
+  const { signup, loading, sendEmailVerification } = useAuth();
   const navigate = useNavigate();
 
   const handleUserTypeSelect = (type: 'homeowner' | 'gardener') => {
     setUserType(type);
+    if (type === 'gardener') {
+      // Redirect to become gardener page for gardener signup
+      navigate('/become-gardener');
+      return;
+    }
     setStep(2);
   };
 
@@ -58,6 +62,7 @@ const SignupPage = () => {
 
     try {
       await signup(formData.email, formData.password, formData.name, userType!);
+      await sendEmailVerification(formData.email);
       setStep(3);
     } catch (error) {
       toast.error(t('error.signup') || 'خطأ في إنشاء الحساب');
@@ -66,15 +71,16 @@ const SignupPage = () => {
 
   const handleResendEmail = async () => {
     try {
+      await sendEmailVerification(formData.email);
       setEmailSent(true);
       toast.success(t('email.resent') || 'تم إرسال رسالة التأكيد مرة أخرى');
-      setTimeout(() => setEmailSent(false), 30000); // Re-enable after 30 seconds
+      setTimeout(() => setEmailSent(false), 30000);
     } catch (error) {
       toast.error(t('error.resend.email') || 'خطأ في إرسال البريد');
     }
   };
 
-  // Step 1: User Type Selection
+  // Step 1: User Type Selection (Only show homeowner option)
   if (step === 1) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -122,7 +128,7 @@ const SignupPage = () => {
               </div>
             </div>
 
-            {/* Gardener Card */}
+            {/* Gardener Card - Links to become-gardener page */}
             <div 
               onClick={() => handleUserTypeSelect('gardener')}
               className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#4CAF50] p-8"
@@ -164,7 +170,7 @@ const SignupPage = () => {
     );
   }
 
-  // Step 2: Registration Form
+  // Step 2: Registration Form (only for homeowners now)
   if (step === 2) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -179,7 +185,7 @@ const SignupPage = () => {
             </Link>
             
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {t('signup.create.account') || 'إنشاء حساب'} {userType === 'homeowner' ? t('auth.homeowner') || 'صاحب منزل' : t('auth.gardener') || 'بستاني'}
+              {t('signup.create.account') || 'إنشاء حساب'} {t('auth.homeowner') || 'صاحب منزل'}
             </h2>
             <p className="text-gray-600">
               {t('signup.fill.info') || 'املأ البيانات التالية لإنشاء حسابك'}
