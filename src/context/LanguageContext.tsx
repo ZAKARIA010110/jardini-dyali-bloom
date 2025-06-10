@@ -65,6 +65,43 @@ const translations = {
     'auth.name': 'الاسم الكامل',
     'auth.confirm.password': 'تأكيد كلمة المرور',
     
+    // Signup specific
+    'signup.choose.account.type': 'اختر نوع حسابك',
+    'signup.choose.description': 'اختر الخيار الذي يناسبك للبدء في رحلتك مع جارديني ديالي',
+    'signup.create.account': 'إنشاء حساب',
+    'signup.fill.info': 'املأ البيانات التالية لإنشاء حسابك',
+    'homeowner.description': 'أبحث عن بستاني محترف للعناية بحديقتي',
+    'gardener.description': 'أريد تقديم خدمات البستنة للعملاء',
+    'homeowner.feature.1': 'الوصول إلى بستانيين محترفين',
+    'homeowner.feature.2': 'مقارنة الأسعار والخدمات',
+    'homeowner.feature.3': 'حجز سريع وآمن',
+    'homeowner.feature.4': 'تقييم ومراجعة الخدمات',
+    'gardener.feature.1': 'الحصول على عملاء جدد',
+    'gardener.feature.2': 'إدارة مواعيدك بسهولة',
+    'gardener.feature.3': 'عرض أعمالك السابقة',
+    'gardener.feature.4': 'زيادة دخلك الشهري',
+    'name.placeholder': 'الاسم الكامل',
+    'creating.account': 'جاري إنشاء الحساب...',
+    'back.to.selection': 'العودة لاختيار نوع الحساب',
+    
+    // Email verification
+    'email.verification.sent': 'تم إرسال رسالة التأكيد!',
+    'email.verification.message': 'تم إرسال رسالة تأكيد إلى',
+    'email.verification.instructions': 'يرجى فتح بريدك الإلكتروني والنقر على رابط التأكيد لإكمال إنشاء حسابك.',
+    'resend.email': 'إعادة إرسال رسالة التأكيد',
+    'email.resent': 'تم إرسال رسالة التأكيد مرة أخرى',
+    'email.resent.wait': 'تم الإرسال - انتظر 30 ثانية',
+    'go.to.login': 'الذهاب لصفحة تسجيل الدخول',
+    'no.email.received': 'لم تتلق البريد؟',
+    'check.spam.folder': 'تحقق من مجلد الرسائل غير المرغوب فيها',
+    
+    // Validation messages
+    'validation.fill.all.fields': 'يرجى ملء جميع الحقول',
+    'validation.password.mismatch': 'كلمة المرور غير متطابقة',
+    'validation.password.length': 'كلمة المرور يجب أن تكون على الأقل 6 أحرف',
+    'error.signup': 'خطأ في إنشاء الحساب',
+    'error.resend.email': 'خطأ في إرسال البريد',
+    
     // Marketplace
     'marketplace.title': 'البستانيون المحترفون',
     'marketplace.subtitle': 'اختر أفضل البستانيين في منطقتك',
@@ -143,6 +180,43 @@ const translations = {
     'auth.name': 'Nom complet',
     'auth.confirm.password': 'Confirmer le mot de passe',
     
+    // Signup specific
+    'signup.choose.account.type': 'Choisissez votre type de compte',
+    'signup.choose.description': 'Choisissez l\'option qui vous convient pour commencer votre voyage avec Jardini Dyali',
+    'signup.create.account': 'Créer un compte',
+    'signup.fill.info': 'Remplissez les informations suivantes pour créer votre compte',
+    'homeowner.description': 'Je cherche un jardinier professionnel pour entretenir mon jardin',
+    'gardener.description': 'Je veux offrir des services de jardinage aux clients',
+    'homeowner.feature.1': 'Accès aux jardiniers professionnels',
+    'homeowner.feature.2': 'Comparer les prix et services',
+    'homeowner.feature.3': 'Réservation rapide et sécurisée',
+    'homeowner.feature.4': 'Évaluer et commenter les services',
+    'gardener.feature.1': 'Obtenir de nouveaux clients',
+    'gardener.feature.2': 'Gérer vos rendez-vous facilement',
+    'gardener.feature.3': 'Présenter vos travaux précédents',
+    'gardener.feature.4': 'Augmenter votre revenu mensuel',
+    'name.placeholder': 'Nom complet',
+    'creating.account': 'Création du compte...',
+    'back.to.selection': 'Retour à la sélection du type de compte',
+    
+    // Email verification
+    'email.verification.sent': 'Email de confirmation envoyé!',
+    'email.verification.message': 'Un email de confirmation a été envoyé à',
+    'email.verification.instructions': 'Veuillez ouvrir votre email et cliquer sur le lien de confirmation pour terminer la création de votre compte.',
+    'resend.email': 'Renvoyer l\'email de confirmation',
+    'email.resent': 'Email de confirmation renvoyé',
+    'email.resent.wait': 'Envoyé - attendez 30 secondes',
+    'go.to.login': 'Aller à la page de connexion',
+    'no.email.received': 'Pas d\'email reçu?',
+    'check.spam.folder': 'Vérifiez votre dossier spam',
+    
+    // Validation messages
+    'validation.fill.all.fields': 'Veuillez remplir tous les champs',
+    'validation.password.mismatch': 'Les mots de passe ne correspondent pas',
+    'validation.password.length': 'Le mot de passe doit contenir au moins 6 caractères',
+    'error.signup': 'Erreur lors de la création du compte',
+    'error.resend.email': 'Erreur lors de l\'envoi de l\'email',
+    
     // Marketplace
     'marketplace.title': 'Jardiniers Professionnels',
     'marketplace.subtitle': 'Choisissez les meilleurs jardiniers de votre région',
@@ -220,6 +294,43 @@ const translations = {
     'auth.gardener': 'Gardener',
     'auth.name': 'Full name',
     'auth.confirm.password': 'Confirm password',
+    
+    // Signup specific
+    'signup.choose.account.type': 'Choose your account type',
+    'signup.choose.description': 'Choose the option that suits you to start your journey with Jardini Dyali',
+    'signup.create.account': 'Create account',
+    'signup.fill.info': 'Fill in the following information to create your account',
+    'homeowner.description': 'I\'m looking for a professional gardener to take care of my garden',
+    'gardener.description': 'I want to provide gardening services to clients',
+    'homeowner.feature.1': 'Access to professional gardeners',
+    'homeowner.feature.2': 'Compare prices and services',
+    'homeowner.feature.3': 'Quick and secure booking',
+    'homeowner.feature.4': 'Rate and review services',
+    'gardener.feature.1': 'Get new clients',
+    'gardener.feature.2': 'Manage your appointments easily',
+    'gardener.feature.3': 'Showcase your previous work',
+    'gardener.feature.4': 'Increase your monthly income',
+    'name.placeholder': 'Full name',
+    'creating.account': 'Creating account...',
+    'back.to.selection': 'Back to account type selection',
+    
+    // Email verification
+    'email.verification.sent': 'Verification email sent!',
+    'email.verification.message': 'A verification email has been sent to',
+    'email.verification.instructions': 'Please open your email and click on the verification link to complete creating your account.',
+    'resend.email': 'Resend verification email',
+    'email.resent': 'Verification email resent',
+    'email.resent.wait': 'Sent - wait 30 seconds',
+    'go.to.login': 'Go to login page',
+    'no.email.received': 'No email received?',
+    'check.spam.folder': 'Check your spam folder',
+    
+    // Validation messages
+    'validation.fill.all.fields': 'Please fill all fields',
+    'validation.password.mismatch': 'Passwords do not match',
+    'validation.password.length': 'Password must be at least 6 characters',
+    'error.signup': 'Error creating account',
+    'error.resend.email': 'Error sending email',
     
     // Marketplace
     'marketplace.title': 'Professional Gardeners',

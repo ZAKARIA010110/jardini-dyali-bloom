@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Eye, EyeOff, User, Home } from 'lucide-react';
+import { Eye, EyeOff, User, Home, CheckCircle, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SignupPage = () => {
@@ -20,6 +20,7 @@ const SignupPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   
   const { t } = useLanguage();
   const { signup, loading } = useAuth();
@@ -41,17 +42,17 @@ const SignupPage = () => {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      toast.error('يرجى ملء جميع الحقول');
+      toast.error(t('validation.fill.all.fields') || 'يرجى ملء جميع الحقول');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('كلمة المرور غير متطابقة');
+      toast.error(t('validation.password.mismatch') || 'كلمة المرور غير متطابقة');
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error('كلمة المرور يجب أن تكون على الأقل 6 أحرف');
+      toast.error(t('validation.password.length') || 'كلمة المرور يجب أن تكون على الأقل 6 أحرف');
       return;
     }
 
@@ -59,7 +60,17 @@ const SignupPage = () => {
       await signup(formData.email, formData.password, formData.name, userType!);
       setStep(3);
     } catch (error) {
-      toast.error('خطأ في إنشاء الحساب');
+      toast.error(t('error.signup') || 'خطأ في إنشاء الحساب');
+    }
+  };
+
+  const handleResendEmail = async () => {
+    try {
+      setEmailSent(true);
+      toast.success(t('email.resent') || 'تم إرسال رسالة التأكيد مرة أخرى');
+      setTimeout(() => setEmailSent(false), 30000); // Re-enable after 30 seconds
+    } catch (error) {
+      toast.error(t('error.resend.email') || 'خطأ في إرسال البريد');
     }
   };
 
@@ -78,10 +89,10 @@ const SignupPage = () => {
             </Link>
             
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              اختر نوع حسابك
+              {t('signup.choose.account.type') || 'اختر نوع حسابك'}
             </h2>
             <p className="text-gray-600">
-              اختر الخيار الذي يناسبك للبدء في رحلتك مع جارديني ديالي
+              {t('signup.choose.description') || 'اختر الخيار الذي يناسبك للبدء في رحلتك مع جارديني ديالي'}
             </p>
           </div>
 
@@ -96,15 +107,17 @@ const SignupPage = () => {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Home className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">صاحب منزل</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {t('auth.homeowner') || 'صاحب منزل'}
+                </h3>
                 <p className="text-gray-600 mb-6">
-                  أبحث عن بستاني محترف للعناية بحديقتي
+                  {t('homeowner.description') || 'أبحث عن بستاني محترف للعناية بحديقتي'}
                 </p>
                 <ul className="text-sm text-gray-600 space-y-2 text-right">
-                  <li>✓ الوصول إلى بستانيين محترفين</li>
-                  <li>✓ مقارنة الأسعار والخدمات</li>
-                  <li>✓ حجز سريع وآمن</li>
-                  <li>✓ تقييم ومراجعة الخدمات</li>
+                  <li>✓ {t('homeowner.feature.1') || 'الوصول إلى بستانيين محترفين'}</li>
+                  <li>✓ {t('homeowner.feature.2') || 'مقارنة الأسعار والخدمات'}</li>
+                  <li>✓ {t('homeowner.feature.3') || 'حجز سريع وآمن'}</li>
+                  <li>✓ {t('homeowner.feature.4') || 'تقييم ومراجعة الخدمات'}</li>
                 </ul>
               </div>
             </div>
@@ -118,15 +131,17 @@ const SignupPage = () => {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">بستاني محترف</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {t('auth.gardener') || 'بستاني محترف'}
+                </h3>
                 <p className="text-gray-600 mb-6">
-                  أريد تقديم خدمات البستنة للعملاء
+                  {t('gardener.description') || 'أريد تقديم خدمات البستنة للعملاء'}
                 </p>
                 <ul className="text-sm text-gray-600 space-y-2 text-right">
-                  <li>✓ الحصول على عملاء جدد</li>
-                  <li>✓ إدارة مواعيدك بسهولة</li>
-                  <li>✓ عرض أعمالك السابقة</li>
-                  <li>✓ زيادة دخلك الشهري</li>
+                  <li>✓ {t('gardener.feature.1') || 'الحصول على عملاء جدد'}</li>
+                  <li>✓ {t('gardener.feature.2') || 'إدارة مواعيدك بسهولة'}</li>
+                  <li>✓ {t('gardener.feature.3') || 'عرض أعمالك السابقة'}</li>
+                  <li>✓ {t('gardener.feature.4') || 'زيادة دخلك الشهري'}</li>
                 </ul>
               </div>
             </div>
@@ -164,10 +179,10 @@ const SignupPage = () => {
             </Link>
             
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              إنشاء حساب {userType === 'homeowner' ? 'صاحب منزل' : 'بستاني'}
+              {t('signup.create.account') || 'إنشاء حساب'} {userType === 'homeowner' ? t('auth.homeowner') || 'صاحب منزل' : t('auth.gardener') || 'بستاني'}
             </h2>
             <p className="text-gray-600">
-              املأ البيانات التالية لإنشاء حسابك
+              {t('signup.fill.info') || 'املأ البيانات التالية لإنشاء حسابك'}
             </p>
           </div>
 
@@ -186,7 +201,7 @@ const SignupPage = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   className="mt-2 text-right"
-                  placeholder="الاسم الكامل"
+                  placeholder={t('name.placeholder') || 'الاسم الكامل'}
                   required
                 />
               </div>
@@ -266,7 +281,7 @@ const SignupPage = () => {
                 className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg"
                 disabled={loading}
               >
-                {loading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
+                {loading ? t('creating.account') || 'جاري إنشاء الحساب...' : t('auth.signup') || 'إنشاء الحساب'}
               </Button>
             </div>
 
@@ -277,7 +292,7 @@ const SignupPage = () => {
                 onClick={() => setStep(1)}
                 className="text-gray-600 hover:text-gray-800 font-medium"
               >
-                ← العودة لاختيار نوع الحساب
+                ← {t('back.to.selection') || 'العودة لاختيار نوع الحساب'}
               </button>
             </div>
           </form>
@@ -292,24 +307,53 @@ const SignupPage = () => {
       <div className="max-w-md w-full space-y-8 text-center">
         {/* Success Icon */}
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <div className="w-10 h-10 bg-[#4CAF50] rounded-full flex items-center justify-center">
-            <span className="text-white text-2xl">✓</span>
-          </div>
+          <Mail className="w-10 h-10 text-[#4CAF50]" />
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            تم إنشاء حسابك بنجاح!
-          </h2>
-          <p className="text-gray-600 mb-6">
-            مرحباً بك في جارديني ديالي، {formData.name}! حسابك جاهز الآن.
+          <div className="flex items-center justify-center mb-4">
+            <CheckCircle className="w-8 h-8 text-[#4CAF50] mr-2" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              {t('email.verification.sent') || 'تم إرسال رسالة التأكيد!'}
+            </h2>
+          </div>
+          
+          <p className="text-gray-600 mb-4">
+            {t('email.verification.message') || 'تم إرسال رسالة تأكيد إلى'} <strong>{formData.email}</strong>
           </p>
           
-          <Link to="/">
-            <Button className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3">
-              الذهاب إلى الصفحة الرئيسية
+          <p className="text-gray-600 mb-6">
+            {t('email.verification.instructions') || 'يرجى فتح بريدك الإلكتروني والنقر على رابط التأكيد لإكمال إنشاء حسابك.'}
+          </p>
+
+          <div className="space-y-4">
+            <Button
+              onClick={handleResendEmail}
+              disabled={emailSent}
+              variant="outline"
+              className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
+            >
+              {emailSent 
+                ? t('email.resent.wait') || 'تم الإرسال - انتظر 30 ثانية'
+                : t('resend.email') || 'إعادة إرسال رسالة التأكيد'
+              }
             </Button>
-          </Link>
+            
+            <Link to="/login">
+              <Button className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3">
+                {t('go.to.login') || 'الذهاب لصفحة تسجيل الدخول'}
+              </Button>
+            </Link>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              {t('no.email.received') || 'لم تتلق البريد؟'} {' '}
+              <span className="text-[#4CAF50]">
+                {t('check.spam.folder') || 'تحقق من مجلد الرسائل غير المرغوب فيها'}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
