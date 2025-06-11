@@ -10,6 +10,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { supabase } from '../integrations/supabase/client';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -31,20 +32,21 @@ const LoginPage = () => {
       await login(email, password);
       toast.success('تم تسجيل الدخول بنجاح');
       
-      // Check if user is admin and redirect accordingly
-      const storedUser = localStorage.getItem('jardini_user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        if (userData.userType === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
+      // Check user type and redirect accordingly
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (profile?.user_type === 'admin') {
+        navigate('/admin');
       } else {
         navigate('/');
       }
-    } catch (error) {
-      toast.error('خطأ في البريد الإلكتروني أو كلمة المرور');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast.error(error.message || 'خطأ في البريد الإلكتروني أو كلمة المرور');
     }
   };
 
@@ -135,9 +137,11 @@ const LoginPage = () => {
               </Button>
 
               {/* Admin Login Info */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-600 text-center">
-                  للوصول إلى لوحة الإدارة: zakaria@jardinidyali.ma / 123admin@
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-xs text-blue-800 text-center">
+                  <strong>للوصول إلى لوحة الإدارة:</strong><br />
+                  zakaria@jardinidyali.ma / 123admin@<br />
+                  <em>متصل بقاعدة البيانات الحقيقية</em>
                 </p>
               </div>
             </div>

@@ -9,7 +9,167 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      admin_chat: {
+        Row: {
+          admin_id: string | null
+          created_at: string | null
+          id: string
+          message: string
+          message_type: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          message_type?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          message_type?: string | null
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          booking_date: string | null
+          booking_time: string | null
+          client_id: string | null
+          client_name: string | null
+          created_at: string | null
+          gardener_id: string | null
+          gardener_name: string | null
+          id: string
+          price: string | null
+          service: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_date?: string | null
+          booking_time?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          gardener_id?: string | null
+          gardener_name?: string | null
+          id?: string
+          price?: string | null
+          service?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_date?: string | null
+          booking_time?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          gardener_id?: string | null
+          gardener_name?: string | null
+          id?: string
+          price?: string | null
+          service?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_gardener_id_fkey"
+            columns: ["gardener_id"]
+            isOneToOne: false
+            referencedRelation: "gardeners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gardeners: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          email: string | null
+          experience: string | null
+          hourly_rate: number | null
+          id: string
+          languages: string[] | null
+          location: string | null
+          name: string
+          phone: string | null
+          rating: number | null
+          review_count: number | null
+          services: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string | null
+          experience?: string | null
+          hourly_rate?: number | null
+          id?: string
+          languages?: string[] | null
+          location?: string | null
+          name: string
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string | null
+          experience?: string | null
+          hourly_rate?: number | null
+          id?: string
+          languages?: string[] | null
+          location?: string | null
+          name?: string
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          id: string
+          name: string | null
+          updated_at: string | null
+          user_type: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id: string
+          name?: string | null
+          updated_at?: string | null
+          user_type?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: string | null
+          user_type?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

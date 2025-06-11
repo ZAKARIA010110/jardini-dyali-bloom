@@ -1,12 +1,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../types';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '../integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string, userType: 'homeowner' | 'gardener') => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   loading: boolean;
   sendEmailVerification: (email: string) => Promise<void>;
 }
@@ -15,45 +17,55 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem('jardini_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check for admin credentials
-      let userType: 'homeowner' | 'gardener' | 'admin' = 'homeowner';
-      let userName = email.split('@')[0];
-      
-      if ((email === 'admin@jardini.ma' && password === 'admin123') || 
-          (email === 'zakaria@jardinidyali.ma' && password === '123admin@')) {
-        userType = 'admin';
-        userName = email === 'zakaria@jardinidyali.ma' ? 'Zakaria' : 'Admin';
-      } else if (email.includes('gardener')) {
-        userType = 'gardener';
-      }
-      
-      const userData: User = {
-        id: Math.random().toString(36).substr(2, 9),
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        userType,
-        name: userName
-      };
-      
-      setUser(userData);
-      localStorage.setItem('jardini_user', JSON.stringify(userData));
-    } catch (error) {
-      throw new Error('Login failed');
+        password,
+      });
+
+      if (error) throw error;
+
+      // Check if this is the admin user and update profile accordingly
+      if (email === 'zakaria@jardinidyali.ma' || email === 'admin@jardini.ma') {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            name: email === 'zakaria@jardinidyali.ma' ? 'Zakaria' : 'Admin',
+            user_type: 'admin'
+          });
+        
+        if (profileError) console.error('Profile update error:', profileError);
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw new Error(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -62,39 +74,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (email: string, password: string, name: string, userType: 'homeowner' | 'gardener') => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const userData: User = {
-        id: Math.random().toString(36).substr(2, 9),
+      const { data, error } = await supabase.auth.signUp({
         email,
-        userType,
-        name
-      };
-      
-      setUser(userData);
-      localStorage.setItem('jardini_user', JSON.stringify(userData));
-    } catch (error) {
-      throw new Error('Signup failed');
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name,
+            user_type: userType
+          }
+        }
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      throw new Error(error.message || 'Signup failed');
     } finally {
       setLoading(false);
     }
   };
 
   const sendEmailVerification = async (email: string) => {
-    // Simulate sending email verification with better feedback
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log('Email verification sent to:', email);
-    // In a real app, this would call your backend API to send the actual email
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`
+      }
+    });
+    
+    if (error) throw error;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('jardini_user');
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading, sendEmailVerification }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      login, 
+      signup, 
+      logout, 
+      loading, 
+      sendEmailVerification 
+    }}>
       {children}
     </AuthContext.Provider>
   );

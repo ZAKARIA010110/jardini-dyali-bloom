@@ -1,68 +1,125 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { mockGardeners } from '../data/gardeners';
+import { supabase } from '../integrations/supabase/client';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Users, Calendar, Star, MapPin, Phone, Mail, Eye, Clock } from 'lucide-react';
+import { Users, Calendar, Star, MapPin, Eye, Clock, MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import AdminChat from '../components/AdminChat';
+
+interface Gardener {
+  id: string;
+  name: string;
+  location: string;
+  bio: string;
+  hourly_rate: number;
+  experience: string;
+  services: string[];
+  rating: number;
+  review_count: number;
+  avatar_url: string;
+  phone: string;
+  email: string;
+  languages: string[];
+}
+
+interface Booking {
+  id: string;
+  client_name: string;
+  gardener_name: string;
+  service: string;
+  booking_date: string;
+  booking_time: string;
+  status: string;
+  price: string;
+}
 
 const AdminDashboard = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGardener, setSelectedGardener] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'gardeners' | 'bookings'>('gardeners');
+  const [selectedGardener, setSelectedGardener] = useState<Gardener | null>(null);
+  const [activeTab, setActiveTab] = useState<'gardeners' | 'bookings' | 'chat'>('gardeners');
+  const [gardeners, setGardeners] = useState<Gardener[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Mock booking data
-  const mockBookings = [
-    {
-      id: '1',
-      clientName: 'أحمد محمد',
-      gardenerName: 'يوسف البستاني',
-      service: 'تصميم الحديقة',
-      date: '2024-06-15',
-      time: '10:00 - 12:00',
-      status: 'مؤكد',
-      price: '500 درهم'
-    },
-    {
-      id: '2',
-      clientName: 'فاطمة الزهراء',
-      gardenerName: 'محمد الحديقي',
-      service: 'قص العشب',
-      date: '2024-06-16',
-      time: '14:00 - 16:00',
-      status: 'قيد الانتظار',
-      price: '200 درهم'
-    },
-    {
-      id: '3',
-      clientName: 'سارة العلوي',
-      gardenerName: 'أمين الورديغي',
-      service: 'تنظيف وتسميد',
-      date: '2024-06-17',
-      time: '09:00 - 11:30',
-      status: 'مؤكد',
-      price: '350 درهم'
-    },
-    {
-      id: '4',
-      clientName: 'زكريا أمجاد',
-      gardenerName: 'عبدالله الفلاح',
-      service: 'سقي وصيانة',
-      date: '2024-06-18',
-      time: '16:00 - 18:00',
-      status: 'ملغي',
-      price: '250 درهم'
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+      checkAdminStatus();
     }
-  ];
+  }, [user, authLoading, navigate]);
 
-  const filteredGardeners = mockGardeners.filter(gardener =>
+  const checkAdminStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error checking admin status:', error);
+        navigate('/login');
+        return;
+      }
+
+      if (profile?.user_type !== 'admin') {
+        navigate('/');
+        return;
+      }
+
+      setIsAdmin(true);
+      fetchData();
+    } catch (error) {
+      console.error('Error:', error);
+      navigate('/login');
+    }
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch gardeners
+      const { data: gardenersData, error: gardenersError } = await supabase
+        .from('gardeners')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (gardenersError) throw gardenersError;
+
+      // Fetch bookings
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (bookingsError) throw bookingsError;
+
+      setGardeners(gardenersData || []);
+      setBookings(bookingsData || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredGardeners = gardeners.filter(gardener =>
     gardener.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     gardener.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -75,20 +132,32 @@ const AdminDashboard = () => {
         return 'bg-yellow-100 text-yellow-800';
       case 'ملغي':
         return 'bg-red-100 text-red-800';
+      case 'مكتمل':
+        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  // Redirect if not admin
-  if (user?.userType !== 'admin') {
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#4CAF50] mx-auto"></div>
+          <p className="mt-4 text-gray-600">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">غير مصرح لك بالوصول</h2>
           <p className="text-gray-600 mb-6">هذه الصفحة مخصصة للمدراء فقط</p>
           <Button 
-            onClick={() => window.location.href = '/login'} 
+            onClick={() => navigate('/login')} 
             className="bg-[#4CAF50] hover:bg-[#45a049]"
           >
             تسجيل الدخول كمدير
@@ -111,11 +180,11 @@ const AdminDashboard = () => {
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   لوحة تحكم المدير
                 </h1>
-                <p className="text-gray-600">أهلاً بك {user?.name || 'المدير'} | إدارة البستانيين والحجوزات</p>
+                <p className="text-gray-600">أهلاً بك {user?.email === 'zakaria@jardinidyali.ma' ? 'زكريا' : 'المدير'} | إدارة البستانيين والحجوزات</p>
               </div>
               <div className="mt-4 sm:mt-0">
-                <div className="text-sm bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg">
-                  آخر تحديث للبيانات: 11 يونيو 2025 - 10:30 صباحاً
+                <div className="text-sm bg-green-100 text-green-800 px-4 py-2 rounded-lg">
+                  متصل بقاعدة البيانات الحقيقية ✓
                 </div>
               </div>
             </div>
@@ -128,7 +197,7 @@ const AdminDashboard = () => {
                 <Users className="w-8 h-8 text-[#4CAF50]" />
                 <div className="mr-4">
                   <p className="text-sm font-medium text-gray-600">إجمالي البستانيين</p>
-                  <p className="text-2xl font-bold text-gray-900">{mockGardeners.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{gardeners.length}</p>
                 </div>
               </div>
             </div>
@@ -137,8 +206,8 @@ const AdminDashboard = () => {
               <div className="flex items-center">
                 <Calendar className="w-8 h-8 text-blue-500" />
                 <div className="mr-4">
-                  <p className="text-sm font-medium text-gray-600">الحجوزات اليوم</p>
-                  <p className="text-2xl font-bold text-gray-900">12</p>
+                  <p className="text-sm font-medium text-gray-600">إجمالي الحجوزات</p>
+                  <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
                 </div>
               </div>
             </div>
@@ -148,17 +217,22 @@ const AdminDashboard = () => {
                 <Star className="w-8 h-8 text-yellow-500" />
                 <div className="mr-4">
                   <p className="text-sm font-medium text-gray-600">متوسط التقييم</p>
-                  <p className="text-2xl font-bold text-gray-900">4.8</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {gardeners.length > 0 
+                      ? (gardeners.reduce((sum, g) => sum + g.rating, 0) / gardeners.length).toFixed(1)
+                      : '0'
+                    }
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
-                <MapPin className="w-8 h-8 text-red-500" />
+                <MessageCircle className="w-8 h-8 text-purple-500" />
                 <div className="mr-4">
-                  <p className="text-sm font-medium text-gray-600">المدن المغطاة</p>
-                  <p className="text-2xl font-bold text-gray-900">6</p>
+                  <p className="text-sm font-medium text-gray-600">دردشة الدعم</p>
+                  <p className="text-2xl font-bold text-gray-900">متاح</p>
                 </div>
               </div>
             </div>
@@ -181,9 +255,28 @@ const AdminDashboard = () => {
                 <Calendar className="w-5 h-5 inline-block ml-2" />
                 الحجوزات
               </button>
+              <button
+                className={`px-6 py-4 text-lg font-medium ${activeTab === 'chat' ? 'text-[#4CAF50] border-b-2 border-[#4CAF50]' : 'text-gray-600 hover:text-gray-900'}`}
+                onClick={() => setActiveTab('chat')}
+              >
+                <MessageCircle className="w-5 h-5 inline-block ml-2" />
+                دردشة الدعم
+              </button>
             </div>
           </div>
 
+          {/* Chat Tab */}
+          {activeTab === 'chat' && (
+            <div className="bg-white rounded-lg shadow mb-8 p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <MessageCircle className="w-5 h-5 ml-2" />
+                دردشة الدعم الفني
+              </h2>
+              <AdminChat />
+            </div>
+          )}
+
+          {/* Gardeners Tab */}
           {activeTab === 'gardeners' && (
             <div className="bg-white rounded-lg shadow mb-8">
               <div className="p-6 border-b border-gray-200">
@@ -224,8 +317,8 @@ const AdminDashboard = () => {
                             <span>{gardener.rating}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">{gardener.reviewCount}</TableCell>
-                        <TableCell className="text-right">{gardener.hourlyRate} درهم</TableCell>
+                        <TableCell className="text-right">{gardener.review_count}</TableCell>
+                        <TableCell className="text-right">{gardener.hourly_rate} درهم</TableCell>
                         <TableCell className="text-right">
                           <Dialog>
                             <DialogTrigger asChild>
@@ -246,7 +339,7 @@ const AdminDashboard = () => {
                                 <div className="space-y-6">
                                   <div className="flex items-center space-x-4 rtl:space-x-reverse">
                                     <img
-                                      src={selectedGardener.avatar}
+                                      src={selectedGardener.avatar_url}
                                       alt={selectedGardener.name}
                                       className="w-20 h-20 rounded-full object-cover"
                                     />
@@ -256,7 +349,7 @@ const AdminDashboard = () => {
                                       <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
                                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                                         <span>{selectedGardener.rating}</span>
-                                        <span className="text-gray-600">({selectedGardener.reviewCount} مراجعة)</span>
+                                        <span className="text-gray-600">({selectedGardener.review_count} مراجعة)</span>
                                       </div>
                                     </div>
                                   </div>
@@ -264,7 +357,7 @@ const AdminDashboard = () => {
                                   <div>
                                     <h4 className="font-semibold mb-2">الخدمات المقدمة:</h4>
                                     <div className="flex flex-wrap gap-2">
-                                      {selectedGardener.services.map((service: string, index: number) => (
+                                      {selectedGardener.services?.map((service: string, index: number) => (
                                         <span
                                           key={index}
                                           className="bg-green-50 text-[#4CAF50] px-3 py-1 rounded-full text-sm"
@@ -287,7 +380,18 @@ const AdminDashboard = () => {
                                     </div>
                                     <div>
                                       <h4 className="font-semibold mb-2">السعر بالساعة:</h4>
-                                      <p className="text-[#4CAF50] font-bold">{selectedGardener.hourlyRate} درهم</p>
+                                      <p className="text-[#4CAF50] font-bold">{selectedGardener.hourly_rate} درهم</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <h4 className="font-semibold mb-2">الهاتف:</h4>
+                                      <p className="text-gray-700">{selectedGardener.phone}</p>
+                                    </div>
+                                    <div>
+                                      <h4 className="font-semibold mb-2">البريد الإلكتروني:</h4>
+                                      <p className="text-gray-700">{selectedGardener.email}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -303,6 +407,7 @@ const AdminDashboard = () => {
             </div>
           )}
 
+          {/* Bookings Tab */}
           {activeTab === 'bookings' && (
             <div className="bg-white rounded-lg shadow mb-8">
               <div className="p-6 border-b border-gray-200">
@@ -326,16 +431,16 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockBookings.map((booking) => (
+                    {bookings.map((booking) => (
                       <TableRow key={booking.id}>
-                        <TableCell className="font-medium text-right">{booking.clientName}</TableCell>
-                        <TableCell className="text-right">{booking.gardenerName}</TableCell>
+                        <TableCell className="font-medium text-right">{booking.client_name}</TableCell>
+                        <TableCell className="text-right">{booking.gardener_name}</TableCell>
                         <TableCell className="text-right">{booking.service}</TableCell>
-                        <TableCell className="text-right">{booking.date}</TableCell>
+                        <TableCell className="text-right">{booking.booking_date}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center text-gray-600">
                             <Clock className="w-4 h-4 ml-1" />
-                            {booking.time}
+                            {booking.booking_time}
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
