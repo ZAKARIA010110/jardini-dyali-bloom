@@ -33,8 +33,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Check for admin credentials
       let userType: 'homeowner' | 'gardener' | 'admin' = 'homeowner';
-      if (email === 'admin@jardini.ma' && password === 'admin123') {
+      let userName = email.split('@')[0];
+      
+      if ((email === 'admin@jardini.ma' && password === 'admin123') || 
+          (email === 'zakaria@jardinidyali.ma' && password === '123admin@')) {
         userType = 'admin';
+        userName = email === 'zakaria@jardinidyali.ma' ? 'Zakaria' : 'Admin';
       } else if (email.includes('gardener')) {
         userType = 'gardener';
       }
@@ -43,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: Math.random().toString(36).substr(2, 9),
         email,
         userType,
-        name: email.split('@')[0]
+        name: userName
       };
       
       setUser(userData);
@@ -78,9 +82,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const sendEmailVerification = async (email: string) => {
-    // Simulate sending email verification
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Simulate sending email verification with better feedback
+    await new Promise(resolve => setTimeout(resolve, 1500));
     console.log('Email verification sent to:', email);
+    // In a real app, this would call your backend API to send the actual email
   };
 
   const logout = () => {
