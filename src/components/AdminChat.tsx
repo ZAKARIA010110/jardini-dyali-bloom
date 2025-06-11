@@ -45,7 +45,22 @@ const AdminChat = () => {
         },
         (payload) => {
           console.log('New message received:', payload);
-          setMessages(prev => [...prev, payload.new as ChatMessage]);
+          const newMsg = payload.new as {
+            id: string;
+            message: string;
+            message_type: string;
+            created_at: string;
+          };
+          
+          // Ensure message_type is properly typed
+          if (newMsg.message_type === 'admin' || newMsg.message_type === 'system' || newMsg.message_type === 'support') {
+            setMessages(prev => [...prev, {
+              id: newMsg.id,
+              message: newMsg.message,
+              message_type: newMsg.message_type,
+              created_at: newMsg.created_at
+            }]);
+          }
         }
       )
       .subscribe();
@@ -63,7 +78,18 @@ const AdminChat = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Filter and type the messages properly
+      const typedMessages = (data || []).filter(msg => 
+        msg.message_type === 'admin' || msg.message_type === 'system' || msg.message_type === 'support'
+      ).map(msg => ({
+        id: msg.id,
+        message: msg.message,
+        message_type: msg.message_type as 'admin' | 'system' | 'support',
+        created_at: msg.created_at
+      }));
+      
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error('خطأ في تحميل الرسائل');

@@ -1,10 +1,13 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
 
+interface AuthUser extends User {
+  name?: string;
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   session: Session | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string, userType: 'homeowner' | 'gardener') => Promise<void>;
@@ -16,7 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,15 +29,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, session) => {
         console.log('Auth state changed:', event, session);
         setSession(session);
-        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch user profile to get name
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', session.user.id)
+            .single();
+          
+          setUser({
+            ...session.user,
+            name: profile?.name || session.user.email
+          });
+        } else {
+          setUser(null);
+        }
         setLoading(false);
       }
     );
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        // Fetch user profile to get name
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', session.user.id)
+          .single();
+        
+        setUser({
+          ...session.user,
+          name: profile?.name || session.user.email
+        });
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 
