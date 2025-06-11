@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
@@ -57,7 +56,7 @@ const AdminChat = () => {
             setMessages(prev => [...prev, {
               id: newMsg.id,
               message: newMsg.message,
-              message_type: newMsg.message_type,
+              message_type: newMsg.message_type as 'admin' | 'system' | 'support',
               created_at: newMsg.created_at
             }]);
           }
