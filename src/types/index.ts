@@ -60,10 +60,4 @@ export interface Booking {
   updated_at: string;
 }
 
-export interface AdminChatMessage {
-  id: string;
-  admin_id: string;
-  message: string;
-  message_type: 'admin' | 'system' | 'support';
-  created_at: string;
-}
+// Remove AdminChatMessage as it's now in chat.ts
