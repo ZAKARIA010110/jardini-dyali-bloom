@@ -135,15 +135,6 @@ const LoginPage = () => {
               >
                 {loading ? 'جاري تسجيل الدخول...' : t('auth.login')}
               </Button>
-
-              {/* Admin Login Info */}
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-xs text-blue-800 text-center">
-                  <strong>للوصول إلى لوحة الإدارة:</strong><br />
-                  zakaria@jardinidyali.ma / 123admin@<br />
-                  <em>متصل بقاعدة البيانات الحقيقية</em>
-                </p>
-              </div>
             </div>
 
             {/* Sign Up Link */}

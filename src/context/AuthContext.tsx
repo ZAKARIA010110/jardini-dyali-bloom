@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -120,6 +121,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) throw error;
+
+      console.log('Signup successful:', data);
+      
+      // Don't throw error if user already exists but is not confirmed
+      if (data.user && !data.user.email_confirmed_at && !data.session) {
+        console.log('User needs to confirm email');
+      }
+
     } catch (error: any) {
       console.error('Signup error:', error);
       throw new Error(error.message || 'Signup failed');
