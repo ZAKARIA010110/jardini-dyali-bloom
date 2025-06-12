@@ -15,6 +15,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   loading: boolean;
   sendEmailVerification: (email: string) => Promise<void>;
+  createAdminUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,6 +76,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
+  const createAdminUser = async () => {
+    try {
+      console.log('Creating admin user...');
+      const { data, error } = await supabase.auth.signUp({
+        email: 'zakaria@jardinidyali.ma',
+        password: '123admin@',
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name: 'Zakaria Admin',
+            user_type: 'admin'
+          }
+        }
+      });
+
+      if (error) {
+        console.error('Error creating admin:', error);
+        throw error;
+      }
+
+      console.log('Admin user creation result:', data);
+      
+      // If user already exists, try to update their profile
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            name: 'Zakaria Admin',
+            user_type: 'admin'
+          });
+        
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+        } else {
+          console.log('Admin profile created/updated successfully');
+        }
+      }
+      
+    } catch (error: any) {
+      console.error('Admin creation error:', error);
+      throw error;
+    }
+  };
+
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -83,7 +129,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
+
+      console.log('Login successful:', data);
 
       // Check if this is the admin user and update profile accordingly
       if (email === 'zakaria@jardinidyali.ma' || email === 'admin@jardini.ma') {
@@ -91,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('profiles')
           .upsert({
             id: data.user.id,
-            name: email === 'zakaria@jardinidyali.ma' ? 'Zakaria' : 'Admin',
+            name: email === 'zakaria@jardinidyali.ma' ? 'Zakaria Admin' : 'Admin',
             user_type: 'admin'
           });
         
@@ -162,7 +213,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signup, 
       logout, 
       loading, 
-      sendEmailVerification 
+      sendEmailVerification,
+      createAdminUser
     }}>
       {children}
     </AuthContext.Provider>

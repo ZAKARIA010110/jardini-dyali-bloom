@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -17,7 +17,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { t } = useLanguage();
-  const { login, loading } = useAuth();
+  const { login, loading, createAdminUser } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,6 +47,24 @@ const LoginPage = () => {
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error(error.message || 'خطأ في البريد الإلكتروني أو كلمة المرور');
+    }
+  };
+
+  const handleCreateAdmin = async () => {
+    try {
+      await createAdminUser();
+      toast.success('تم إنشاء حساب المدير بنجاح! يمكنك الآن تسجيل الدخول');
+      setEmail('zakaria@jardinidyali.ma');
+      setPassword('123admin@');
+    } catch (error: any) {
+      console.error('Admin creation error:', error);
+      if (error.message?.includes('already registered')) {
+        toast.info('حساب المدير موجود بالفعل. يمكنك تسجيل الدخول مباشرة');
+        setEmail('zakaria@jardinidyali.ma');
+        setPassword('123admin@');
+      } else {
+        toast.error('فشل في إنشاء حساب المدير: ' + error.message);
+      }
     }
   };
 
@@ -134,6 +152,18 @@ const LoginPage = () => {
                 disabled={loading}
               >
                 {loading ? 'جاري تسجيل الدخول...' : t('auth.login')}
+              </Button>
+
+              {/* Admin Setup Button - For Development */}
+              <Button
+                type="button"
+                onClick={handleCreateAdmin}
+                variant="outline"
+                className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
+                disabled={loading}
+              >
+                <Settings className="w-4 h-4 ml-2" />
+                إعداد حساب المدير (للتطوير)
               </Button>
             </div>
 
