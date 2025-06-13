@@ -86,7 +86,7 @@ const HeroSection = () => {
               {/* Main image container */}
               <div className="aspect-square rounded-3xl bg-gradient-to-br from-green-400 via-emerald-400 to-green-600 p-8 shadow-2xl transform group-hover:scale-105 transition-all duration-500">
                 <div className="w-full h-full rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80" alt="Beautiful garden landscape" className="w-full h-full object-cover rounded-2xl transform group-hover:scale-110 transition-transform duration-700" />
+                  <img alt="Beautiful garden landscape" className="w-full h-full object-cover rounded-2xl transform group-hover:scale-110 transition-transform duration-700" src="https://chatgpt.com/s/m_684c3eb11f708191bf156f1a0b559175" />
                 </div>
               </div>
               
