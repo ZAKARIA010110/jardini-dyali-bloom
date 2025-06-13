@@ -180,7 +180,7 @@ const AdminDashboard = () => {
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   لوحة تحكم المدير
                 </h1>
-                <p className="text-gray-600">أهلاً بك {user?.email === 'zakaria@jardinidyali.ma' ? 'زكريا' : 'المدير'} | إدارة البستانيين والحجوزات</p>
+                <p className="text-gray-600">أهلاً بك زكريا | إدارة البستانيين والحجوزات</p>
               </div>
               <div className="mt-4 sm:mt-0">
                 <div className="text-sm bg-green-100 text-green-800 px-4 py-2 rounded-lg">

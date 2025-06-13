@@ -54,14 +54,14 @@ const LoginPage = () => {
     try {
       await createAdminUser();
       toast.success('تم إنشاء حساب المدير بنجاح! يمكنك الآن تسجيل الدخول');
-      setEmail('zakaria@jardinidyali.ma');
-      setPassword('123admin@');
+      setEmail('zakariadrk45@gmail.com');
+      setPassword('admin123@');
     } catch (error: any) {
       console.error('Admin creation error:', error);
       if (error.message?.includes('already registered')) {
         toast.info('حساب المدير موجود بالفعل. يمكنك تسجيل الدخول مباشرة');
-        setEmail('zakaria@jardinidyali.ma');
-        setPassword('123admin@');
+        setEmail('zakariadrk45@gmail.com');
+        setPassword('admin123@');
       } else {
         toast.error('فشل في إنشاء حساب المدير: ' + error.message);
       }

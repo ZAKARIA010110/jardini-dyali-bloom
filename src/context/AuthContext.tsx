@@ -80,8 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Creating admin user...');
       const { data, error } = await supabase.auth.signUp({
-        email: 'zakaria@jardinidyali.ma',
-        password: '123admin@',
+        email: 'zakariadrk45@gmail.com',
+        password: 'admin123@',
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
@@ -137,12 +137,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Login successful:', data);
 
       // Check if this is the admin user and update profile accordingly
-      if (email === 'zakaria@jardinidyali.ma' || email === 'admin@jardini.ma') {
+      if (email === 'zakariadrk45@gmail.com') {
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({
             id: data.user.id,
-            name: email === 'zakaria@jardinidyali.ma' ? 'Zakaria Admin' : 'Admin',
+            name: 'Zakaria Admin',
             user_type: 'admin'
           });
         
