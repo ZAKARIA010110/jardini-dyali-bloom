@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -25,19 +26,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Setting up auth state listener...');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session);
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         
         if (session?.user) {
-          // Fetch user profile to get name
+          // Fetch user profile to get name and user_type
           const { data: profile } = await supabase
             .from('profiles')
-            .select('name')
+            .select('name, user_type')
             .eq('id', session.user.id)
             .single();
+          
+          console.log('User profile:', profile);
           
           setUser({
             ...session.user,
@@ -52,15 +57,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session:', session?.user?.email);
       setSession(session);
       
       if (session?.user) {
         // Fetch user profile to get name
         const { data: profile } = await supabase
           .from('profiles')
-          .select('name')
+          .select('name, user_type')
           .eq('id', session.user.id)
           .single();
+        
+        console.log('Initial profile:', profile);
         
         setUser({
           ...session.user,
@@ -79,7 +87,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Creating admin user...');
       
-      // First try to sign up the user
+      // First check if admin user already exists
+      const { data: existingUser } = await supabase.auth.admin.getUserById('cd6a102b-bcf6-4bfe-a516-8db51204474b');
+      
+      if (existingUser) {
+        console.log('Admin user already exists, ensuring profile is correct...');
+        // Ensure profile exists with correct data
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: 'cd6a102b-bcf6-4bfe-a516-8db51204474b',
+            name: 'Zakaria Admin',
+            user_type: 'admin'
+          });
+        
+        if (profileError) console.error('Profile upsert error:', profileError);
+        return;
+      }
+
+      // Try to sign up the user
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: 'zakariadrk45@gmail.com',
         password: 'admin123@',
@@ -98,27 +124,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('Admin user signup result:', signUpData);
       
-      // If signup was successful or user already exists, ensure profile is created
-      let userId = signUpData?.user?.id;
-      
-      // If user already exists, get their ID by signing them in temporarily
-      if (!userId) {
-        const { data: signInData } = await supabase.auth.signInWithPassword({
-          email: 'zakariadrk45@gmail.com',
-          password: 'admin123@'
-        });
-        userId = signInData?.user?.id;
-        
-        // Sign out immediately after getting the ID
-        await supabase.auth.signOut();
-      }
-      
-      if (userId) {
-        // Ensure admin profile exists
+      // Ensure profile is created/updated
+      if (signUpData?.user?.id) {
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({
-            id: userId,
+            id: signUpData.user.id,
             name: 'Zakaria Admin',
             user_type: 'admin'
           });
@@ -139,6 +150,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      console.log('Attempting login for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -149,10 +162,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      console.log('Login successful:', data);
+      console.log('Login successful for:', data.user?.email);
 
-      // For admin user, ensure profile is properly set
-      if (email === 'zakariadrk45@gmail.com') {
+      // Ensure profile exists for admin user
+      if (email === 'zakariadrk45@gmail.com' && data.user) {
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({
@@ -174,6 +187,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (email: string, password: string, name: string, userType: 'homeowner' | 'gardener') => {
     setLoading(true);
     try {
+      console.log('Attempting signup for:', email, 'as', userType);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -190,9 +205,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('Signup successful:', data);
       
-      // Don't throw error if user already exists but is not confirmed
-      if (data.user && !data.user.email_confirmed_at && !data.session) {
-        console.log('User needs to confirm email');
+      // Create profile entry
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            name,
+            user_type: userType
+          });
+        
+        if (profileError) console.error('Profile creation error:', profileError);
       }
 
     } catch (error: any) {

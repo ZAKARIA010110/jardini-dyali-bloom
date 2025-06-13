@@ -29,20 +29,28 @@ const LoginPage = () => {
     }
 
     try {
+      console.log('Attempting login with:', email);
       await login(email, password);
       toast.success('تم تسجيل الدخول بنجاح');
       
       // Check user type and redirect accordingly
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
 
-      if (profile?.user_type === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/');
+        console.log('User profile after login:', profile);
+
+        if (profile?.user_type === 'admin') {
+          console.log('Redirecting to admin dashboard');
+          navigate('/admin');
+        } else {
+          console.log('Redirecting to home page');
+          navigate('/');
+        }
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -52,6 +60,7 @@ const LoginPage = () => {
 
   const handleCreateAdmin = async () => {
     try {
+      console.log('Creating admin user...');
       await createAdminUser();
       toast.success('تم إنشاء حساب المدير بنجاح! يمكنك الآن تسجيل الدخول');
       setEmail('zakariadrk45@gmail.com');
