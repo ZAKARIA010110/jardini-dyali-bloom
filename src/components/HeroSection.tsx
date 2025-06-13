@@ -1,15 +1,13 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
 import { Sparkles, Leaf, Users, Award } from 'lucide-react';
-
 const HeroSection = () => {
-  const { t } = useLanguage();
-
-  return (
-    <section className="pt-20 pb-16 bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50 min-h-screen flex items-center relative overflow-hidden">
+  const {
+    t
+  } = useLanguage();
+  return <section className="pt-20 pb-16 bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50 min-h-screen flex items-center relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-32 w-80 h-80 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
@@ -40,19 +38,10 @@ const HeroSection = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8 animate-fade-in">
               <Link to="/gardeners">
-                <Button 
-                  size="lg" 
-                  className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  ابدأ الآن كصاحب منزل
-                </Button>
+                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">طلب بستاني </Button>
               </Link>
               <Link to="/become-gardener">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="w-full sm:w-auto border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                   انضم كبستاني
                 </Button>
               </Link>
@@ -97,11 +86,7 @@ const HeroSection = () => {
               {/* Main image container */}
               <div className="aspect-square rounded-3xl bg-gradient-to-br from-green-400 via-emerald-400 to-green-600 p-8 shadow-2xl transform group-hover:scale-105 transition-all duration-500">
                 <div className="w-full h-full rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden">
-                  <img 
-                    src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80" 
-                    alt="Beautiful garden landscape"
-                    className="w-full h-full object-cover rounded-2xl transform group-hover:scale-110 transition-transform duration-700"
-                  />
+                  <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80" alt="Beautiful garden landscape" className="w-full h-full object-cover rounded-2xl transform group-hover:scale-110 transition-transform duration-700" />
                 </div>
               </div>
               
@@ -116,9 +101,7 @@ const HeroSection = () => {
               <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4 animate-float-delayed">
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                   <div className="flex text-yellow-400">
-                    {'★★★★★'.split('').map((star, i) => (
-                      <span key={i} className="text-sm">{star}</span>
-                    ))}
+                    {'★★★★★'.split('').map((star, i) => <span key={i} className="text-sm">{star}</span>)}
                   </div>
                   <span className="text-sm font-semibold text-gray-800">5.0</span>
                 </div>
@@ -131,8 +114,6 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;
