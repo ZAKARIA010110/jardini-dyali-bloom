@@ -18,6 +18,7 @@ import GardenerListingPage from './pages/GardenerListingPage';
 import GardenerProfilePage from './pages/GardenerProfilePage';
 import BecomeGardenerPage from './pages/BecomeGardenerPage';
 import AdminDashboard from './pages/AdminDashboard';
+import UserDashboard from './pages/UserDashboard';
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/gardeners/:id" element={<GardenerProfilePage />} />
               <Route path="/become-gardener" element={<BecomeGardenerPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/dashboard" element={<UserDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

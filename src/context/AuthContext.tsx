@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -79,7 +78,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const createAdminUser = async () => {
     try {
       console.log('Creating admin user...');
-      const { data, error } = await supabase.auth.signUp({
+      
+      // First try to sign up the user
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: 'zakariadrk45@gmail.com',
         password: 'admin123@',
         options: {
@@ -91,19 +92,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      if (error) {
-        console.error('Error creating admin:', error);
-        throw error;
+      if (signUpError && !signUpError.message.includes('already registered')) {
+        throw signUpError;
       }
 
-      console.log('Admin user creation result:', data);
+      console.log('Admin user signup result:', signUpData);
       
-      // If user already exists, try to update their profile
-      if (data.user) {
+      // If signup was successful or user already exists, ensure profile is created
+      let userId = signUpData?.user?.id;
+      
+      // If user already exists, get their ID by signing them in temporarily
+      if (!userId) {
+        const { data: signInData } = await supabase.auth.signInWithPassword({
+          email: 'zakariadrk45@gmail.com',
+          password: 'admin123@'
+        });
+        userId = signInData?.user?.id;
+        
+        // Sign out immediately after getting the ID
+        await supabase.auth.signOut();
+      }
+      
+      if (userId) {
+        // Ensure admin profile exists
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({
-            id: data.user.id,
+            id: userId,
             name: 'Zakaria Admin',
             user_type: 'admin'
           });
@@ -136,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('Login successful:', data);
 
-      // Check if this is the admin user and update profile accordingly
+      // For admin user, ensure profile is properly set
       if (email === 'zakariadrk45@gmail.com') {
         const { error: profileError } = await supabase
           .from('profiles')
