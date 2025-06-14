@@ -176,20 +176,26 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
       console.log('Signup successful:', data);
 
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            name,
-            user_type: userType
-          });
-        if (profileError) console.error('Profile creation error:', profileError);
-      }
+      // Do NOT upsert a profile here! The DB trigger will handle it.
+      // if (data.user) {
+      //   const { error: profileError } = await supabase
+      //     .from('profiles')
+      //     .upsert({
+      //       id: data.user.id,
+      //       name,
+      //       user_type: userType
+      //     });
+      //   if (profileError) console.error('Profile creation error:', profileError);
+      // }
 
     } catch (error: any) {
+      // Improved: Show actual Supabase message if possible
       console.error('Signup error:', error);
-      throw new Error(error.message || 'Signup failed');
+      throw new Error(
+        error?.message
+          ? error.message
+          : 'Signup failed, please try again or contact support.'
+      );
     } finally {
       setLoading(false);
     }
