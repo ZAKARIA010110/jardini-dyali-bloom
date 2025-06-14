@@ -13,56 +13,108 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   useEffect(() => {
     console.log('Setting up auth state listener...');
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        setSession(session);
+    
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    const setupAuth = async () => {
+      try {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('Auth state changed:', event, session?.user?.email);
+            setSession(session);
 
-        if (session?.user) {
-          // Fetch user profile to get name and user_type
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name, user_type')
-            .eq('id', session.user.id)
-            .single();
+            if (session?.user) {
+              try {
+                // Fetch user profile to get name and user_type
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('name, user_type')
+                  .eq('id', session.user.id)
+                  .single();
 
-          console.log('User profile:', profile);
+                console.log('User profile:', profile);
 
-          setUser({
-            ...session.user,
-            name: profile?.name || session.user.email
-          });
-        } else {
-          setUser(null);
-        }
+                setUser({
+                  ...session.user,
+                  name: profile?.name || session.user.email
+                });
+              } catch (profileError) {
+                console.error('Error fetching profile:', profileError);
+                // Still set user even if profile fetch fails
+                setUser({
+                  ...session.user,
+                  name: session.user.email
+                });
+              }
+            } else {
+              setUser(null);
+            }
+            setLoading(false);
+          }
+        );
+
+        // Get initial session with retry logic
+        const getInitialSession = async () => {
+          try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (error) {
+              throw error;
+            }
+            
+            console.log('Initial session:', session?.user?.email);
+            setSession(session);
+
+            if (session?.user) {
+              try {
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('name, user_type')
+                  .eq('id', session.user.id)
+                  .single();
+
+                console.log('Initial profile:', profile);
+
+                setUser({
+                  ...session.user,
+                  name: profile?.name || session.user.email
+                });
+              } catch (profileError) {
+                console.error('Error fetching initial profile:', profileError);
+                setUser({
+                  ...session.user,
+                  name: session.user.email
+                });
+              }
+            } else {
+              setUser(null);
+            }
+            setLoading(false);
+          } catch (error) {
+            console.error('Error getting initial session:', error);
+            retryCount++;
+            
+            if (retryCount < maxRetries) {
+              console.log(`Retrying auth setup... (${retryCount}/${maxRetries})`);
+              setTimeout(getInitialSession, 2000 * retryCount); // Exponential backoff
+            } else {
+              console.error('Max retries reached for auth setup');
+              setLoading(false);
+            }
+          }
+        };
+
+        await getInitialSession();
+
+        return () => subscription.unsubscribe();
+      } catch (error) {
+        console.error('Error setting up auth:', error);
         setLoading(false);
       }
-    );
+    };
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('Initial session:', session?.user?.email);
-      setSession(session);
-
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name, user_type')
-          .eq('id', session.user.id)
-          .single();
-
-        console.log('Initial profile:', profile);
-
-        setUser({
-          ...session.user,
-          name: profile?.name || session.user.email
-        });
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    setupAuth();
   }, []);
 
   const createAdminUser = async () => {
@@ -133,24 +185,38 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
       if (error) {
         console.error('Login error:', error);
+        
+        // Handle specific network errors
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          throw new Error('مشكلة في الاتصال بالإنترنت. تأكد من اتصالك وحاول مرة أخرى');
+        }
+        
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('بيانات الدخول غير صحيحة');
+        }
+        
         throw error;
       }
 
       console.log('Login successful for:', data.user?.email);
 
       if (email === 'zakariadrk45@gmail.com' && data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            name: 'Zakaria Admin',
-            user_type: 'admin'
-          });
-        if (profileError) console.error('Profile update error:', profileError);
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: data.user.id,
+              name: 'Zakaria Admin',
+              user_type: 'admin'
+            });
+          if (profileError) console.error('Profile update error:', profileError);
+        } catch (profileError) {
+          console.error('Profile update failed:', profileError);
+        }
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      throw new Error(error.message || 'Login failed');
+      throw new Error(error.message || 'خطأ في تسجيل الدخول');
     } finally {
       setLoading(false);
     }
@@ -174,10 +240,22 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       });
 
       if (error) {
+        console.error('Signup error:', error);
+        
+        // Handle specific network errors
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          throw new Error('مشكلة في الاتصال بالإنترنت. تأكد من اتصالك وحاول مرة أخرى');
+        }
+        
         // Handle rate limit error specifically
         if (error.message.includes('rate_limit') || error.message.includes('36 seconds')) {
           throw new Error('يجب انتظار 36 ثانية قبل إعادة المحاولة');
         }
+        
+        if (error.message.includes('already registered')) {
+          throw new Error('هذا البريد الإلكتروني مسجل مسبقاً');
+        }
+        
         throw error;
       }
 
@@ -185,8 +263,11 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
     } catch (error: any) {
       console.error('Signup error:', error);
+      
       // Return more specific error messages
-      if (error.message.includes('rate_limit') || error.message.includes('36 seconds')) {
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        throw new Error('مشكلة في الاتصال بالإنترنت. تأكد من اتصالك وحاول مرة أخرى');
+      } else if (error.message.includes('rate_limit') || error.message.includes('36 seconds')) {
         throw new Error('يجب انتظار 36 ثانية قبل إعادة المحاولة');
       } else if (error.message.includes('already registered')) {
         throw new Error('هذا البريد الإلكتروني مسجل مسبقاً');
@@ -212,6 +293,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       });
       
       if (error) {
+        console.error('Email verification error:', error);
+        
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          throw new Error('مشكلة في الاتصال بالإنترنت. تأكد من اتصالك وحاول مرة أخرى');
+        }
+        
         if (error.message.includes('rate_limit') || error.message.includes('36 seconds')) {
           throw new Error('يجب انتظار قبل إعادة إرسال البريد');
         }

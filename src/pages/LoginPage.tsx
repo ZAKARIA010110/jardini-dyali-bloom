@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/useAuth'; // UPDATED
+import { useAuth } from '../context/useAuth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Eye, EyeOff, Settings } from 'lucide-react';
+import { Eye, EyeOff, Settings, Wifi } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -15,6 +15,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const { t } = useLanguage();
   const { login, loading, createAdminUser } = useAuth();
   const navigate = useNavigate();
@@ -53,7 +54,27 @@ const LoginPage = () => {
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error(error.message || 'خطأ في البريد الإلكتروني أو كلمة المرور');
+      
+      if (error.message.includes('مشكلة في الاتصال')) {
+        toast.error('مشكلة في الاتصال بالإنترنت. تحقق من اتصالك وحاول مرة أخرى');
+        setIsRetrying(true);
+        setTimeout(() => setIsRetrying(false), 3000);
+      } else {
+        toast.error(error.message || 'خطأ في البريد الإلكتروني أو كلمة المرور');
+      }
+    }
+  };
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      // Test connection to Supabase
+      await supabase.auth.getSession();
+      toast.success('تم استعادة الاتصال');
+      setIsRetrying(false);
+    } catch (error) {
+      toast.error('لا يزال هناك مشكلة في الاتصال');
+      setTimeout(() => setIsRetrying(false), 3000);
     }
   };
 
@@ -98,6 +119,22 @@ const LoginPage = () => {
               مرحباً بك مرة أخرى في جارديني ديالي
             </p>
           </div>
+
+          {/* Connection Status */}
+          {isRetrying && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+              <Wifi className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
+              <p className="text-yellow-800 text-sm mb-2">جاري التحقق من الاتصال...</p>
+              <Button
+                onClick={handleRetry}
+                variant="outline"
+                size="sm"
+                className="border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+              >
+                إعادة المحاولة
+              </Button>
+            </div>
+          )}
 
           {/* Form */}
           <form className="space-y-6" onSubmit={handleSubmit}>
@@ -157,7 +194,7 @@ const LoginPage = () => {
               <Button
                 type="submit"
                 className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg"
-                disabled={loading}
+                disabled={loading || isRetrying}
               >
                 {loading ? 'جاري تسجيل الدخول...' : t('auth.login')}
               </Button>
@@ -168,7 +205,7 @@ const LoginPage = () => {
                 onClick={handleCreateAdmin}
                 variant="outline"
                 className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
-                disabled={loading}
+                disabled={loading || isRetrying}
               >
                 <Settings className="w-4 h-4 ml-2" />
                 إعداد حساب المدير (للتطوير)
