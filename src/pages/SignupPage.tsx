@@ -43,22 +43,28 @@ const SignupPage = () => {
     });
   };
 
-  // Update: capture both message and error from Supabase
+  // Update: better multilingual error handling for Supabase
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      toast.error(t('validation.fill.all.fields') || 'يرجى ملء جميع الحقول');
+      toast.error(
+        t('validation.fill.all.fields')
+      );
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error(t('validation.password.mismatch') || 'كلمة المرور غير متطابقة');
+      toast.error(
+        t('validation.password.mismatch')
+      );
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error(t('validation.password.length') || 'كلمة المرور يجب أن تكون على الأقل 6 أحرف');
+      toast.error(
+        t('validation.password.length')
+      );
       return;
     }
 
@@ -67,9 +73,8 @@ const SignupPage = () => {
       await sendEmailVerification(formData.email);
       setStep(3);
     } catch (error: any) {
-      // Superbase returns an error even when signup succeeds if email confirmation is on
       const supabaseMsg = error?.message || '';
-      // Detect known Supabase messages for signup pending verification
+      // Common Supabase "still needs confirmation" cases
       if (
         supabaseMsg.includes("User already registered") ||
         supabaseMsg.includes("signup only allowed for new users") ||
@@ -80,17 +85,28 @@ const SignupPage = () => {
         await sendEmailVerification(formData.email);
         setStep(3);
         toast.info(
-          t('email.verification.sent') || 'تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. الرجاء التحقق من بريدك لإكمال التسجيل.',
+          t('email.verification.sent')
         );
       } else if (supabaseMsg) {
-        // Unexpected actual error
-        toast.error(
-          supabaseMsg ||
-            t('error.signup') ||
-            'حدث خطأ أثناء إنشاء الحساب، حاول مجدداً أو استخدم بريدًا مختلفًا.',
-        );
+        // Any other unexpected error—force user-friendly translation only
+        if (supabaseMsg.toLowerCase().includes("email")) {
+          toast.error(
+            t('error.signup') // Already translated
+          );
+        } else if (supabaseMsg.toLowerCase().includes("password")) {
+          toast.error(
+            t('validation.password.length')
+          );
+        } else {
+          toast.error(
+            // Always fallback to nice translation, never raw supabaseMsg
+            t('error.signup')
+          );
+        }
       } else {
-        toast.error(t('error.signup') || 'خطأ في إنشاء الحساب');
+        toast.error(
+          t('error.signup')
+        );
       }
     }
   };
