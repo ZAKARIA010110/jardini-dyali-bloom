@@ -71,11 +71,11 @@ const Footer = () => {
               <Link to="/how-it-works" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
                 كيف نعمل
               </Link>
-              <Link to="/careers" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
-                الوظائف
-              </Link>
               <Link to="/contact" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
                 {t('footer.contact')}
+              </Link>
+              <Link to="/faq" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
+                {t('nav.faq')}
               </Link>
             </div>
           </div>

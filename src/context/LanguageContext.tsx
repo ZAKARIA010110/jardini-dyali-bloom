@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface LanguageContextType {
@@ -18,6 +17,8 @@ const translations = {
     'nav.signup': 'إنشاء حساب',
     'nav.logout': 'خروج',
     'nav.profile': 'الملف الشخصي',
+    'nav.contact': 'اتصل بنا',
+    'nav.faq': 'الأسئلة الشائعة',
     
     // Hero Section
     'hero.title': 'حديقتك... حلمك... مع جارديني ديالي',
@@ -133,6 +134,8 @@ const translations = {
     'nav.signup': 'Inscription',
     'nav.logout': 'Déconnexion',
     'nav.profile': 'Profil',
+    'nav.contact': 'Contact',
+    'nav.faq': 'FAQ',
     
     // Hero Section
     'hero.title': 'Votre jardin... Votre rêve... Avec Jardini Dyali',
@@ -248,6 +251,8 @@ const translations = {
     'nav.signup': 'Sign Up',
     'nav.logout': 'Logout',
     'nav.profile': 'Profile',
+    'nav.contact': 'Contact',
+    'nav.faq': 'FAQ',
     
     // Hero Section
     'hero.title': 'Your Garden... Your Dream... With Jardini Dyali',

@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/useAuth'; // UPDATED
+import { useAuth } from '../context/useAuth';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 
@@ -40,6 +41,12 @@ const Navbar = () => {
             </Link>
             <Link to="/become-gardener" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
               {t('nav.become.gardener')}
+            </Link>
+            <Link to="/contact" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+              {t('nav.contact')}
+            </Link>
+            <Link to="/faq" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+              {t('nav.faq')}
             </Link>
           </div>
 
@@ -122,6 +129,20 @@ const Navbar = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t('nav.become.gardener')}
+              </Link>
+              <Link 
+                to="/contact" 
+                className="text-gray-700 hover:text-[#4CAF50] transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.contact')}
+              </Link>
+              <Link 
+                to="/faq" 
+                className="text-gray-700 hover:text-[#4CAF50] transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.faq')}
               </Link>
               
               {user ? (

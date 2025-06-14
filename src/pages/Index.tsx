@@ -8,6 +8,7 @@ import TestimonialsSection from '../components/TestimonialsSection';
 import CTASection from '../components/CTASection';
 import Footer from '../components/Footer';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import AuthTest from '../components/AuthTest';
 
 const Index = () => {
   return (
@@ -17,6 +18,7 @@ const Index = () => {
       <ServicesSection />
       <HowItWorksSection />
       <TestimonialsSection />
+      <AuthTest />
       <CTASection />
       <Footer />
       <LanguageSwitcher />
