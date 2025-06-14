@@ -28,22 +28,37 @@ const SignupPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      toast.error(t('validation.fill.all.fields'));
+      toast({
+        variant: "destructive",
+        title: t('validation.fill.all.fields') || 'يرجى ملء جميع الحقول',
+        description: t('validation.fill.all.fields.desc') || 'جميع الحقول مطلوبة'
+      });
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      toast.error(t('validation.password.mismatch'));
+      toast({
+        variant: "destructive",
+        title: t('validation.password.mismatch') || 'كلمات المرور غير متطابقة',
+        description: t('validation.password.mismatch.desc') || 'تأكد من تطابق كلمات المرور'
+      });
       return;
     }
     if (formData.password.length < 6) {
-      toast.error(t('validation.password.length'));
+      toast({
+        variant: "destructive",
+        title: t('validation.password.length') || 'كلمة المرور قصيرة جداً',
+        description: t('validation.password.length.desc') || 'يجب أن تكون كلمة المرور 6 أحرف على الأقل'
+      });
       return;
     }
     try {
       // Send correct userType to Supabase signup
       await signup(formData.email, formData.password, formData.name, formData.userType as 'homeowner' | 'gardener');
       setStep(3);
-      toast.success(t('email.verification.sent'));
+      toast({
+        title: t('email.verification.sent') || 'تم إرسال رسالة التأكيد',
+        description: t('email.verification.sent.desc') || 'تحقق من بريدك الإلكتروني'
+      });
     } catch (error: any) {
       const supabaseMsg = error?.message || '';
       if (
@@ -53,13 +68,28 @@ const SignupPage = () => {
         supabaseMsg.includes("Email rate limit")
       ) {
         setStep(3);
-        toast.info(t('email.verification.sent'));
+        toast({
+          title: t('email.verification.sent') || 'تم إرسال رسالة التأكيد',
+          description: t('email.verification.sent.desc') || 'تحقق من بريدك الإلكتروني'
+        });
       } else if (supabaseMsg.toLowerCase().includes("email")) {
-        toast.error(t('error.signup'));
+        toast({
+          variant: "destructive",
+          title: t('error.signup') || 'حدث خطأ أثناء إنشاء الحساب',
+          description: t('error.signup.email') || 'خطأ في البريد الإلكتروني'
+        });
       } else if (supabaseMsg.toLowerCase().includes("password")) {
-        toast.error(t('validation.password.length'));
+        toast({
+          variant: "destructive",
+          title: t('validation.password.length') || 'كلمة المرور قصيرة جداً',
+          description: t('validation.password.length.desc') || 'يجب أن تكون كلمة المرور 6 أحرف على الأقل'
+        });
       } else {
-        toast.error(t('error.signup'));
+        toast({
+          variant: "destructive",
+          title: t('error.signup') || 'حدث خطأ أثناء إنشاء الحساب',
+          description: t('error.signup.desc') || 'يرجى المحاولة مرة أخرى'
+        });
       }
     }
   };
