@@ -5,7 +5,46 @@ import { useLanguage } from '../context/LanguageContext';
 import { Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
 
 const Footer = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const footerText = {
+    ar: {
+      services: 'الخدمات',
+      about: 'عن الشركة',
+      contact: 'اتصل بنا',
+      faq: 'الأسئلة الشائعة',
+      rights: 'جميع الحقوق محفوظة',
+      follow: 'تابعنا',
+      links: {
+        design: 'تصميم الحدائق',
+        lawnCare: 'العناية بالعشب',
+        planting: 'الزراعة والغرس',
+        maintenance: 'الصيانة الدورية',
+        aboutUs: 'من نحن',
+        howItWorks: 'كيف نعمل',
+        careers: 'الوظائف'
+      }
+    },
+    fr: {
+      services: 'Services',
+      about: 'À propos',
+      contact: 'Contact',
+      faq: 'FAQ',
+      rights: 'Tous droits réservés',
+      follow: 'Suivez-nous',
+      links: {
+        design: 'Conception de jardins',
+        lawnCare: 'Entretien de pelouse',
+        planting: 'Plantation',
+        maintenance: 'Maintenance régulière',
+        aboutUs: 'À propos de nous',
+        howItWorks: 'Comment ça marche',
+        careers: 'Carrières'
+      }
+    }
+  };
+
+  const footer = footerText[language as 'ar' | 'fr'] || footerText.ar;
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -21,8 +60,10 @@ const Footer = () => {
               <span className="text-2xl font-bold">Jardini Dyali</span>
             </div>
             <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
-              منصة مغربية رائدة تربط أصحاب المنازل بأفضل البستانيين المحترفين. 
-              نساعدك في تحويل حديقتك إلى واحة خضراء جميلة.
+              {language === 'ar' 
+                ? 'منصة مغربية رائدة تربط أصحاب المنازل بأفضل البستانيين المحترفين. نساعدك في تحويل حديقتك إلى واحة خضراء جميلة.'
+                : 'Plateforme marocaine leader qui connecte les propriétaires avec les meilleurs jardiniers professionnels. Nous vous aidons à transformer votre jardin en un bel oasis vert.'
+              }
             </p>
             
             {/* Contact Info */}
@@ -37,45 +78,50 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3 rtl:space-x-reverse">
                 <MapPin className="w-5 h-5 text-[#4CAF50]" />
-                <span className="text-gray-400">الرباط، المغرب</span>
+                <span className="text-gray-400">
+                  {language === 'ar' ? 'الرباط، المغرب' : 'Rabat, Maroc'}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-lg mb-6">{t('footer.services')}</h3>
+            <h3 className="font-semibold text-lg mb-6">{footer.services}</h3>
             <div className="space-y-3">
               <Link to="/services/design" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
-                تصميم الحدائق
+                {footer.links.design}
               </Link>
               <Link to="/services/lawn-care" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
-                العناية بالعشب
+                {footer.links.lawnCare}
               </Link>
               <Link to="/services/planting" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
-                الزراعة والغرس
+                {footer.links.planting}
               </Link>
               <Link to="/services/maintenance" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
-                الصيانة الدورية
+                {footer.links.maintenance}
               </Link>
             </div>
           </div>
 
           {/* Company */}
           <div>
-            <h3 className="font-semibold text-lg mb-6">{t('footer.about')}</h3>
+            <h3 className="font-semibold text-lg mb-6">{footer.about}</h3>
             <div className="space-y-3">
               <Link to="/about" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
-                من نحن
+                {footer.links.aboutUs}
               </Link>
               <Link to="/how-it-works" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
-                كيف نعمل
+                {footer.links.howItWorks}
               </Link>
               <Link to="/careers" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
-                الوظائف
+                {footer.links.careers}
               </Link>
               <Link to="/contact" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
-                {t('footer.contact')}
+                {footer.contact}
+              </Link>
+              <Link to="/faq" className="block text-gray-400 hover:text-[#4CAF50] transition-colors">
+                {footer.faq}
               </Link>
             </div>
           </div>
@@ -85,12 +131,12 @@ const Footer = () => {
         <div className="py-6 border-t border-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm mb-4 md:mb-0">
-              © 2024 Jardini Dyali. {t('footer.rights')}
+              © 2024 Jardini Dyali. {footer.rights}
             </p>
             
             {/* Social Links */}
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <span className="text-gray-400 text-sm">{t('footer.follow')}:</span>
+              <span className="text-gray-400 text-sm">{footer.follow}:</span>
               <a href="#" className="text-gray-400 hover:text-[#4CAF50] transition-colors">
                 <Facebook className="w-5 h-5" />
               </a>
