@@ -43,6 +43,7 @@ const SignupPage = () => {
     });
   };
 
+  // Update: capture both message and error from Supabase
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -65,8 +66,32 @@ const SignupPage = () => {
       await signup(formData.email, formData.password, formData.name, userType!);
       await sendEmailVerification(formData.email);
       setStep(3);
-    } catch (error) {
-      toast.error(t('error.signup') || 'خطأ في إنشاء الحساب');
+    } catch (error: any) {
+      // Superbase returns an error even when signup succeeds if email confirmation is on
+      const supabaseMsg = error?.message || '';
+      // Detect known Supabase messages for signup pending verification
+      if (
+        supabaseMsg.includes("User already registered") ||
+        supabaseMsg.includes("signup only allowed for new users") ||
+        supabaseMsg.toLowerCase().includes("confirmation") ||
+        supabaseMsg.includes("Check your email for verification") ||
+        supabaseMsg.includes("already registered")
+      ) {
+        await sendEmailVerification(formData.email);
+        setStep(3);
+        toast.info(
+          t('email.verification.sent') || 'تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. الرجاء التحقق من بريدك لإكمال التسجيل.',
+        );
+      } else if (supabaseMsg) {
+        // Unexpected actual error
+        toast.error(
+          supabaseMsg ||
+            t('error.signup') ||
+            'حدث خطأ أثناء إنشاء الحساب، حاول مجدداً أو استخدم بريدًا مختلفًا.',
+        );
+      } else {
+        toast.error(t('error.signup') || 'خطأ في إنشاء الحساب');
+      }
     }
   };
 
