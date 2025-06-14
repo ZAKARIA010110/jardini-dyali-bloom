@@ -20,8 +20,6 @@ import BecomeGardenerPage from './pages/BecomeGardenerPage';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import ProfilePage from './pages/ProfilePage';
-import ContactPage from './pages/ContactPage';
-import FAQPage from './pages/FAQPage';
 
 const queryClient = new QueryClient();
 
@@ -44,8 +42,6 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/dashboard" element={<UserDashboard />} />
               <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/faq" element={<FAQPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
