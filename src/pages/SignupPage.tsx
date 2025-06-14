@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -68,8 +69,13 @@ const SignupPage = () => {
       try {
         await sendEmailVerification(formData.email);
         toast.success('تم إنشاء الحساب بنجاح! تم إرسال رسالة التأكيد');
-      } catch (emailError: any) {
-        console.log('Email verification error:', emailError);
+      } catch (emailError: unknown) {
+        if (emailError instanceof Error) {
+          console.log('Email verification error:', emailError.message);
+        } else {
+          console.log('Unknown email error:', emailError);
+        }
+
         toast.info('تم إنشاء الحساب، لكن هناك مشكلة في إرسال البريد. يمكنك المحاولة لاحقاً');
       }
       
