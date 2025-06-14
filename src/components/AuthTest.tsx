@@ -7,6 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { useToast } from '../hooks/use-toast';
 
+// Define the test note type since it's not in the generated types yet
+interface TestNote {
+  id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+}
+
 const AuthTest = () => {
   const { user, login, signup, logout } = useAuth();
   const { toast } = useToast();
@@ -14,7 +22,7 @@ const AuthTest = () => {
   const [password, setPassword] = useState('password123');
   const [name, setName] = useState('Test User');
   const [testNote, setTestNote] = useState('');
-  const [notes, setNotes] = useState<any[]>([]);
+  const [notes, setNotes] = useState<TestNote[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
@@ -84,7 +92,8 @@ const AuthTest = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Use any type to bypass TypeScript issues with the new table
+      const { data, error } = await (supabase as any)
         .from('test_notes')
         .insert([
           {
@@ -120,7 +129,8 @@ const AuthTest = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // Use any type to bypass TypeScript issues with the new table
+      const { data, error } = await (supabase as any)
         .from('test_notes')
         .select('*')
         .eq('user_id', user.id)
