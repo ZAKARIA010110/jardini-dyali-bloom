@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { AuthContextType, AuthUser } from './authTypes';
@@ -172,44 +173,54 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle rate limit error specifically
+        if (error.message.includes('rate_limit') || error.message.includes('36 seconds')) {
+          throw new Error('يجب انتظار 36 ثانية قبل إعادة المحاولة');
+        }
+        throw error;
+      }
 
       console.log('Signup successful:', data);
 
-      // Do NOT upsert a profile here! The DB trigger will handle it.
-      // if (data.user) {
-      //   const { error: profileError } = await supabase
-      //     .from('profiles')
-      //     .upsert({
-      //       id: data.user.id,
-      //       name,
-      //       user_type: userType
-      //     });
-      //   if (profileError) console.error('Profile creation error:', profileError);
-      // }
-
     } catch (error: any) {
-      // Improved: Show actual Supabase message if possible
       console.error('Signup error:', error);
-      throw new Error(
-        error?.message
-          ? error.message
-          : 'Signup failed, please try again or contact support.'
-      );
+      // Return more specific error messages
+      if (error.message.includes('rate_limit') || error.message.includes('36 seconds')) {
+        throw new Error('يجب انتظار 36 ثانية قبل إعادة المحاولة');
+      } else if (error.message.includes('already registered')) {
+        throw new Error('هذا البريد الإلكتروني مسجل مسبقاً');
+      } else if (error.message.includes('invalid email')) {
+        throw new Error('بريد إلكتروني غير صحيح');
+      } else if (error.message.includes('password')) {
+        throw new Error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      }
+      throw new Error(error.message || 'خطأ في إنشاء الحساب');
     } finally {
       setLoading(false);
     }
   };
 
   const sendEmailVerification = async (email: string) => {
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+      
+      if (error) {
+        if (error.message.includes('rate_limit') || error.message.includes('36 seconds')) {
+          throw new Error('يجب انتظار قبل إعادة إرسال البريد');
+        }
+        throw error;
       }
-    });
-    if (error) throw error;
+    } catch (error: any) {
+      console.error('Email verification error:', error);
+      throw error;
+    }
   };
 
   const logout = async () => {

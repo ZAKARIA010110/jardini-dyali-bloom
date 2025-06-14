@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/useAuth'; // UPDATED
+import { useAuth } from '../context/useAuth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -43,82 +43,77 @@ const SignupPage = () => {
     });
   };
 
-  // Update: better multilingual error handling for Supabase
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      toast.error(
-        t('validation.fill.all.fields')
-      );
+      toast.error('يرجى ملء جميع الحقول');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error(
-        t('validation.password.mismatch')
-      );
+      toast.error('كلمات المرور غير متطابقة');
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error(
-        t('validation.password.length')
-      );
+      toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       return;
     }
 
     try {
       await signup(formData.email, formData.password, formData.name, userType!);
-      await sendEmailVerification(formData.email);
+      
+      // Try to send verification email
+      try {
+        await sendEmailVerification(formData.email);
+        toast.success('تم إنشاء الحساب بنجاح! تم إرسال رسالة التأكيد');
+      } catch (emailError: any) {
+        console.log('Email verification error:', emailError);
+        toast.info('تم إنشاء الحساب، لكن هناك مشكلة في إرسال البريد. يمكنك المحاولة لاحقاً');
+      }
+      
       setStep(3);
     } catch (error: any) {
-      const supabaseMsg = error?.message || '';
-      // Common Supabase "still needs confirmation" cases
-      if (
-        supabaseMsg.includes("User already registered") ||
-        supabaseMsg.includes("signup only allowed for new users") ||
-        supabaseMsg.toLowerCase().includes("confirmation") ||
-        supabaseMsg.includes("Check your email for verification") ||
-        supabaseMsg.includes("already registered")
-      ) {
-        await sendEmailVerification(formData.email);
+      console.error('Signup error:', error);
+      
+      const errorMessage = error.message || 'خطأ في إنشاء الحساب';
+      
+      if (errorMessage.includes('36 ثانية') || errorMessage.includes('rate_limit')) {
+        toast.error('يجب انتظار 36 ثانية قبل إعادة المحاولة');
+      } else if (errorMessage.includes('مسجل مسبقاً') || errorMessage.includes('already registered')) {
+        toast.error('هذا البريد الإلكتروني مسجل مسبقاً');
+        // Still proceed to email verification step for existing users
         setStep(3);
-        toast.info(
-          t('email.verification.sent')
-        );
-      } else if (supabaseMsg) {
-        // Any other unexpected error—force user-friendly translation only
-        if (supabaseMsg.toLowerCase().includes("email")) {
-          toast.error(
-            t('error.signup') // Already translated
-          );
-        } else if (supabaseMsg.toLowerCase().includes("password")) {
-          toast.error(
-            t('validation.password.length')
-          );
-        } else {
-          toast.error(
-            // Always fallback to nice translation, never raw supabaseMsg
-            t('error.signup')
-          );
-        }
+      } else if (errorMessage.includes('invalid email')) {
+        toast.error('بريد إلكتروني غير صحيح');
       } else {
-        toast.error(
-          t('error.signup')
-        );
+        toast.error(errorMessage);
       }
     }
   };
 
   const handleResendEmail = async () => {
+    if (emailSent) {
+      toast.info('تم إرسال البريد مؤخراً، يرجى الانتظار');
+      return;
+    }
+
     try {
       await sendEmailVerification(formData.email);
       setEmailSent(true);
-      toast.success(t('email.resent') || 'تم إرسال رسالة التأكيد مرة أخرى');
-      setTimeout(() => setEmailSent(false), 30000);
-    } catch (error) {
-      toast.error(t('error.resend.email') || 'خطأ في إرسال البريد');
+      toast.success('تم إرسال رسالة التأكيد مرة أخرى');
+      
+      // Reset the flag after 60 seconds
+      setTimeout(() => setEmailSent(false), 60000);
+    } catch (error: any) {
+      console.error('Resend email error:', error);
+      
+      if (error.message.includes('rate_limit') || error.message.includes('36 seconds')) {
+        toast.error('يجب انتظار قبل إعادة إرسال البريد');
+      } else {
+        toast.error('خطأ في إرسال البريد. يرجى المحاولة لاحقاً');
+      }
     }
   };
 
@@ -338,7 +333,7 @@ const SignupPage = () => {
                   className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg"
                   disabled={loading}
                 >
-                  {loading ? t('creating.account') || 'جاري إنشاء الحساب...' : t('auth.signup') || 'إنشاء الحساب'}
+                  {loading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
                 </Button>
               </div>
 
@@ -349,7 +344,7 @@ const SignupPage = () => {
                   onClick={() => setStep(1)}
                   className="text-gray-600 hover:text-gray-800 font-medium"
                 >
-                  ← {t('back.to.selection') || 'العودة لاختيار نوع الحساب'}
+                  ← العودة لاختيار نوع الحساب
                 </button>
               </div>
             </form>
@@ -377,45 +372,52 @@ const SignupPage = () => {
             <div className="flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8 text-[#4CAF50] mr-2" />
               <h2 className="text-2xl font-bold text-gray-900">
-                {t('email.verification.sent') || 'تم إرسال رسالة التأكيد!'}
+                تم إرسال رسالة التأكيد!
               </h2>
             </div>
             
             <p className="text-gray-600 mb-4">
-              {t('email.verification.message') || 'تم إرسال رسالة تأكيد إلى'} <strong>{formData.email}</strong>
+              تم إرسال رسالة تأكيد إلى <strong>{formData.email}</strong>
             </p>
             
             <p className="text-gray-600 mb-6">
-              {t('email.verification.instructions') || 'يرجى فتح بريدك الإلكتروني والنقر على رابط التأكيد لإكمال إنشاء حسابك.'}
+              يرجى فتح بريدك الإلكتروني والنقر على رابط التأكيد لإكمال إنشاء حسابك.
             </p>
 
             <div className="space-y-4">
               <Button
                 onClick={handleResendEmail}
-                disabled={emailSent}
+                disabled={emailSent || loading}
                 variant="outline"
                 className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
               >
                 {emailSent 
-                  ? t('email.resent.wait') || 'تم الإرسال - انتظر 30 ثانية'
-                  : t('resend.email') || 'إعادة إرسال رسالة التأكيد'
+                  ? 'تم الإرسال - انتظر دقيقة'
+                  : 'إعادة إرسال رسالة التأكيد'
                 }
               </Button>
               
               <Link to="/login">
                 <Button className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3">
-                  {t('go.to.login') || 'الذهاب لصفحة تسجيل الدخول'}
+                  الذهاب لصفحة تسجيل الدخول
                 </Button>
               </Link>
             </div>
 
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600">
-                {t('no.email.received') || 'لم تتلق البريد؟'} {' '}
+                لم تتلق البريد؟ {' '}
                 <span className="text-[#4CAF50]">
-                  {t('check.spam.folder') || 'تحقق من مجلد الرسائل غير المرغوب فيها'}
+                  تحقق من مجلد الرسائل غير المرغوب فيها
                 </span>
               </p>
+              
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <strong>ملاحظة مهمة:</strong> قد تستغرق رسالة التأكيد بضع دقائق للوصول. 
+                  إذا لم تصل، تأكد من صحة عنوان البريد الإلكتروني.
+                </p>
+              </div>
             </div>
           </div>
         </div>
