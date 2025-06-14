@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface LanguageContextType {
@@ -111,6 +112,27 @@ const translations = {
     'marketplace.rating': 'التقييم',
     'marketplace.reviews': 'تقييم',
     'marketplace.hourly.rate': 'درهم/ساعة',
+    
+    // Contact Page
+    'contact.title': 'اتصل بنا',
+    'contact.subtitle': 'نحن هنا لمساعدتك. تواصل معنا في أي وقت',
+    'contact.name': 'الاسم الكامل',
+    'contact.email': 'البريد الإلكتروني',
+    'contact.phone': 'رقم الهاتف',
+    'contact.address': 'العنوان',
+    'contact.message': 'رسالتك',
+    'contact.send': 'إرسال الرسالة',
+    'contact.info.title': 'معلومات الاتصال',
+    
+    // FAQ Page
+    'faq.title': 'الأسئلة الشائعة',
+    'faq.subtitle': 'إجابات على الأسئلة الأكثر شيوعاً حول جارديني ديالي',
+    'faq.q1': 'كيف يمكنني التسجيل في جارديني ديالي؟',
+    'faq.a1': 'يمكنك التسجيل بسهولة من خلال النقر على زر "إنشاء حساب" واختيار نوع حسابك (صاحب منزل أو بستاني) ثم ملء البيانات المطلوبة.',
+    'faq.q2': 'هل الخدمة آمنة ومضمونة؟',
+    'faq.a2': 'نعم، جميع البستانيين المسجلين لدينا محترفون ومعتمدون. كما نوفر نظام تقييم وضمان جودة الخدمة.',
+    'faq.q3': 'كيف يتم الدفع؟',
+    'faq.a3': 'يمكنك الدفع نقداً للبستاني مباشرة أو من خلال التحويل البنكي. نعمل على إضافة المزيد من وسائل الدفع قريباً.',
     
     // Footer
     'footer.about': 'حول جارديني ديالي',
@@ -229,6 +251,27 @@ const translations = {
     'marketplace.reviews': 'avis',
     'marketplace.hourly.rate': 'DH/heure',
     
+    // Contact Page
+    'contact.title': 'Contactez-nous',
+    'contact.subtitle': 'Nous sommes là pour vous aider. Contactez-nous à tout moment',
+    'contact.name': 'Nom complet',
+    'contact.email': 'Email',
+    'contact.phone': 'Téléphone',
+    'contact.address': 'Adresse',
+    'contact.message': 'Votre message',
+    'contact.send': 'Envoyer le message',
+    'contact.info.title': 'Informations de contact',
+    
+    // FAQ Page
+    'faq.title': 'Questions Fréquemment Posées',
+    'faq.subtitle': 'Réponses aux questions les plus courantes sur Jardini Dyali',
+    'faq.q1': 'Comment puis-je m\'inscrire sur Jardini Dyali?',
+    'faq.a1': 'Vous pouvez vous inscrire facilement en cliquant sur le bouton "Inscription" et en choisissant votre type de compte (propriétaire ou jardinier) puis en remplissant les informations requises.',
+    'faq.q2': 'Le service est-il sûr et garanti?',
+    'faq.a2': 'Oui, tous les jardiniers enregistrés chez nous sont professionnels et certifiés. Nous fournissons également un système d\'évaluation et une garantie de qualité de service.',
+    'faq.q3': 'Comment se fait le paiement?',
+    'faq.a3': 'Vous pouvez payer en espèces directement au jardinier ou par virement bancaire. Nous travaillons à ajouter plus de moyens de paiement prochainement.',
+    
     // Footer
     'footer.about': 'À propos de Jardini Dyali',
     'footer.services': 'Nos Services',
@@ -345,6 +388,27 @@ const translations = {
     'marketplace.rating': 'Rating',
     'marketplace.reviews': 'reviews',
     'marketplace.hourly.rate': 'DH/hour',
+    
+    // Contact Page
+    'contact.title': 'Contact Us',
+    'contact.subtitle': 'We are here to help you. Contact us anytime',
+    'contact.name': 'Full Name',
+    'contact.email': 'Email',
+    'contact.phone': 'Phone',
+    'contact.address': 'Address',
+    'contact.message': 'Your Message',
+    'contact.send': 'Send Message',
+    'contact.info.title': 'Contact Information',
+    
+    // FAQ Page
+    'faq.title': 'Frequently Asked Questions',
+    'faq.subtitle': 'Answers to the most common questions about Jardini Dyali',
+    'faq.q1': 'How can I register on Jardini Dyali?',
+    'faq.a1': 'You can easily register by clicking the "Sign Up" button and choosing your account type (homeowner or gardener) then filling in the required information.',
+    'faq.q2': 'Is the service safe and guaranteed?',
+    'faq.a2': 'Yes, all gardeners registered with us are professional and certified. We also provide a rating system and service quality guarantee.',
+    'faq.q3': 'How is payment made?',
+    'faq.a3': 'You can pay cash directly to the gardener or by bank transfer. We are working to add more payment methods soon.',
     
     // Footer
     'footer.about': 'About Jardini Dyali',
