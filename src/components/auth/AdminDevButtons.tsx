@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Button } from '../ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../../integrations/supabase/client';
 
@@ -22,18 +21,6 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
     try {
       console.log('Creating admin user...');
       
-      // First check if admin already exists
-      const { data: userListData } = await supabase.auth.admin.listUsers();
-      const adminExists = userListData?.users?.find((user: any) => user.email === 'zakariadrk00@gmail.com');
-      
-      if (adminExists) {
-        console.log('Admin user already exists, can login directly');
-        toast.success('حساب المدير موجود بالفعل. يمكنك تسجيل الدخول مباشرة');
-        setEmail('zakariadrk00@gmail.com');
-        setPassword('admin123456');
-        return;
-      }
-
       // Create new admin user
       const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email: 'zakariadrk00@gmail.com',
@@ -206,32 +193,31 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
   };
 
   return (
-    <>
-      {/* Admin Setup Button - Hidden in production */}
-      <div className="hidden">
-        <Button
-          type="button"
-          onClick={handleCreateAdmin}
-          variant="outline"
-          className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
-          disabled={loading || isRetrying}
-        >
-          <Settings className="w-4 h-4 ml-2" />
-          إعداد حساب المدير (للتطوير)
-        </Button>
+    <div className="space-y-3">
+      {/* Admin Setup Button - Now visible for setup */}
+      <Button
+        type="button"
+        onClick={handleCreateAdmin}
+        variant="outline"
+        className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
+        disabled={loading || isRetrying}
+      >
+        <Settings className="w-4 h-4 ml-2" />
+        إعداد حساب المدير
+      </Button>
 
-        {/* Reset Data Button - Hidden in production */}
-        <Button
-          type="button"
-          onClick={handleResetData}
-          variant="outline"
-          className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
-          disabled={loading || isRetrying}
-        >
-          إعادة تعيين البيانات التجريبية
-        </Button>
-      </div>
-    </>
+      {/* Reset Data Button - For development */}
+      <Button
+        type="button"
+        onClick={handleResetData}
+        variant="outline"
+        className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
+        disabled={loading || isRetrying}
+      >
+        <Database className="w-4 h-4 ml-2" />
+        إعادة تعيين البيانات التجريبية
+      </Button>
+    </div>
   );
 };
 
