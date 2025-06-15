@@ -22,11 +22,24 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
     try {
       console.log('Creating admin user...');
       
-      // First, try to sign up the admin user
+      // First check if admin already exists
+      const { data: existingUser } = await supabase.auth.admin.listUsers();
+      const adminExists = existingUser.users?.find(user => user.email === 'zakariadrk45@gmail.com');
+      
+      if (adminExists) {
+        console.log('Admin user already exists, can login directly');
+        toast.success('حساب المدير موجود بالفعل. يمكنك تسجيل الدخول مباشرة');
+        setEmail('zakariadrk45@gmail.com');
+        setPassword('admin123@');
+        return;
+      }
+
+      // Create new admin user
       const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email: 'zakariadrk45@gmail.com',
         password: 'admin123@',
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             name: 'Zakaria Admin',
             user_type: 'admin'
@@ -45,21 +58,7 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
       }
 
       if (signupData.user) {
-        // Create or update the profile with admin role
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: signupData.user.id,
-            name: 'Zakaria Admin',
-            user_type: 'admin',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-        }
-
+        console.log('Admin user created:', signupData.user.id);
         toast.success('تم إنشاء حساب المدير بنجاح! يمكنك الآن تسجيل الدخول');
         setEmail('zakariadrk45@gmail.com');
         setPassword('admin123@');

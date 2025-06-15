@@ -31,43 +31,11 @@ const LoginPage = () => {
           {/* Form */}
           <div className="space-y-6">
             <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="text-gray-700 font-medium block mb-2">
-                  البريد الإلكتروني
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full mt-2 text-right px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:border-transparent"
-                  placeholder="example@email.com"
-                  required
-                />
-              </div>
-
-              {/* Password */}
-              <div>
-                <label htmlFor="password" className="text-gray-700 font-medium block mb-2">
-                  كلمة المرور
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full mt-2 text-right px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:border-transparent"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
+              {/* Login Form Component - This handles its own email/password state */}
+              <LoginForm />
 
               {/* Forgot Password */}
               <ForgotPasswordLink />
-
-              {/* Login Form Component */}
-              <LoginForm />
 
               {/* Admin Development Buttons */}
               <AdminDevButtons 

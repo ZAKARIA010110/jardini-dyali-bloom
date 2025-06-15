@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { AuthContextType, AuthUser } from './authTypes';
@@ -26,6 +25,25 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
             if (session?.user) {
               try {
+                // For admin user, ensure profile exists
+                if (session.user.email === 'zakariadrk45@gmail.com') {
+                  const { error: profileError } = await supabase
+                    .from('profiles')
+                    .upsert({
+                      id: session.user.id,
+                      name: 'Zakaria Admin',
+                      user_type: 'admin',
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString()
+                    });
+                  
+                  if (profileError) {
+                    console.error('Admin profile upsert error:', profileError);
+                  } else {
+                    console.log('Admin profile ensured');
+                  }
+                }
+
                 // Fetch user profile to get name and user_type
                 const { data: profile } = await supabase
                   .from('profiles')
@@ -68,6 +86,23 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
             if (session?.user) {
               try {
+                // For admin user, ensure profile exists
+                if (session.user.email === 'zakariadrk45@gmail.com') {
+                  const { error: profileError } = await supabase
+                    .from('profiles')
+                    .upsert({
+                      id: session.user.id,
+                      name: 'Zakaria Admin',
+                      user_type: 'admin',
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString()
+                    });
+                  
+                  if (profileError) {
+                    console.error('Admin profile upsert error:', profileError);
+                  }
+                }
+
                 const { data: profile } = await supabase
                   .from('profiles')
                   .select('name, user_type')
@@ -200,6 +235,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
       console.log('Login successful for:', data.user?.email);
 
+      // For admin user, ensure profile exists after login
       if (email === 'zakariadrk45@gmail.com' && data.user) {
         try {
           const { error: profileError } = await supabase
@@ -207,7 +243,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             .upsert({
               id: data.user.id,
               name: 'Zakaria Admin',
-              user_type: 'admin'
+              user_type: 'admin',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             });
           if (profileError) console.error('Profile update error:', profileError);
         } catch (profileError) {
