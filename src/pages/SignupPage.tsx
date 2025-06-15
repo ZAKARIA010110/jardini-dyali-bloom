@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -5,7 +6,7 @@ import { useAuth } from '../context/useAuth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Eye, EyeOff, User, Home, CheckCircle, Mail } from 'lucide-react';
+import { Eye, EyeOff, User, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -21,10 +22,9 @@ const SignupPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
   
   const { t } = useLanguage();
-  const { signup, sendEmailVerification, loading } = useAuth();
+  const { signup, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleUserTypeSelect = (type: 'homeowner' | 'gardener') => {
@@ -66,13 +66,18 @@ const SignupPage = () => {
       const result = await signup(formData.email, formData.password, formData.name, userType!);
       
       if (result?.emailConfirmationRequired) {
-        console.log('Email confirmation required, proceeding to verification step');
+        console.log('Email confirmation required, navigating to verification page');
         toast.success(result.message || 'تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني للتأكيد');
-        setStep(3);
+        
+        // Navigate to email verification page with email in state
+        navigate('/email-verification', { 
+          state: { email: formData.email },
+          replace: true 
+        });
       } else {
-        console.log('Account created and confirmed, redirecting to login');
+        console.log('Account created and confirmed, redirecting to dashboard');
         toast.success(result?.message || 'تم إنشاء الحساب بنجاح!');
-        navigate('/login');
+        navigate('/dashboard');
       }
       
     } catch (error: any) {
@@ -82,8 +87,10 @@ const SignupPage = () => {
       
       if (errorMessage.includes('already registered') || errorMessage.includes('مسجل مسبقاً')) {
         toast.error('هذا البريد الإلكتروني مسجل مسبقاً');
-        // Still proceed to email verification step for existing users
-        setStep(3);
+        // Navigate to verification page for existing users
+        navigate('/email-verification', { 
+          state: { email: formData.email }
+        });
       } else if (errorMessage.includes('rate_limit') || errorMessage.includes('36 ثانية')) {
         toast.error('يجب انتظار 36 ثانية قبل إعادة المحاولة');
       } else if (errorMessage.includes('invalid email')) {
@@ -91,29 +98,6 @@ const SignupPage = () => {
       } else {
         toast.error(errorMessage);
       }
-    }
-  };
-
-  const handleResendEmail = async () => {
-    if (emailSent) {
-      toast.info('تم إرسال البريد مؤخراً، يرجى الانتظار');
-      return;
-    }
-
-    try {
-      console.log('Resending verification email to:', formData.email);
-      const result = await sendEmailVerification(formData.email);
-      
-      if (result?.success) {
-        toast.success(result.message || 'تم إرسال رسالة التأكيد بنجاح');
-        setEmailSent(true);
-        
-        // Reset the flag after 60 seconds
-        setTimeout(() => setEmailSent(false), 60000);
-      }
-    } catch (error: any) {
-      console.error('Resend email error:', error);
-      toast.error('حدث خطأ في إرسال البريد. يرجى المحاولة لاحقاً');
     }
   };
 
@@ -214,205 +198,139 @@ const SignupPage = () => {
   }
 
   // Step 2: Registration Form
-  if (step === 2) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
-        <Navbar />
-        
-        <div className="pt-20 pb-8 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          <div className="max-w-md w-full space-y-8">
-            {/* Header */}
-            <div className="text-center">
-              <Link to="/" className="inline-flex items-center space-x-2 rtl:space-x-reverse mb-8">
-                <div className="w-12 h-12 bg-[#4CAF50] rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">ج</span>
-                </div>
-                <span className="text-2xl font-bold text-gray-900">Jardini Dyali</span>
-              </Link>
-              
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                {t('signup.create.account') || 'إنشاء حساب'} {t('auth.homeowner') || 'صاحب منزل'}
-              </h2>
-              <p className="text-gray-600">
-                {t('signup.fill.info') || 'املأ البيانات التالية لإنشاء حسابك'}
-              </p>
-            </div>
-
-            {/* Form */}
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
-                {/* Name */}
-                <div>
-                  <Label htmlFor="name" className="text-gray-700 font-medium">
-                    {t('auth.name')}
-                  </Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="mt-2 text-right"
-                    placeholder={t('name.placeholder') || 'الاسم الكامل'}
-                    required
-                  />
-                </div>
-
-                {/* Email */}
-                <div>
-                  <Label htmlFor="email" className="text-gray-700 font-medium">
-                    {t('auth.email')}
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="mt-2 text-right"
-                    placeholder="example@email.com"
-                    required
-                  />
-                </div>
-
-                {/* Password */}
-                <div>
-                  <Label htmlFor="password" className="text-gray-700 font-medium">
-                    {t('auth.password')}
-                  </Label>
-                  <div className="relative mt-2">
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="text-right pr-12"
-                      placeholder="••••••••"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">
-                    {t('auth.confirm.password')}
-                  </Label>
-                  <div className="relative mt-2">
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="text-right pr-12"
-                      placeholder="••••••••"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg"
-                  disabled={loading}
-                >
-                  {loading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
-                </Button>
-              </div>
-
-              {/* Back Button */}
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="text-gray-600 hover:text-gray-800 font-medium"
-                >
-                  ← العودة لاختيار نوع الحساب
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-        
-        <Footer />
-      </div>
-    );
-  }
-
-  // Step 3: Email Verification
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <Navbar />
       
       <div className="pt-20 pb-8 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 text-center">
-          {/* Email Icon */}
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Mail className="w-10 h-10 text-[#4CAF50]" />
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="flex items-center justify-center mb-4">
-              <CheckCircle className="w-8 h-8 text-[#4CAF50] mr-2" />
-              <h2 className="text-2xl font-bold text-gray-900">
-                تحقق من بريدك الإلكتروني
-              </h2>
-            </div>
-            
-            <p className="text-gray-600 mb-4">
-              تم إرسال رسالة تأكيد إلى: <strong>{formData.email}</strong>
-            </p>
-            
-            <p className="text-gray-600 mb-6">
-              يرجى فحص صندوق الوارد أو مجلد الرسائل غير المرغوب فيها والنقر على رابط التأكيد لتفعيل حسابك.
-            </p>
-
-            <div className="space-y-4">
-              <Button
-                onClick={handleResendEmail}
-                disabled={emailSent || loading}
-                variant="outline"
-                className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
-              >
-                {emailSent 
-                  ? 'تم الإرسال - انتظر دقيقة'
-                  : 'إعادة إرسال رسالة التأكيد'
-                }
-              </Button>
-              
-              <Link to="/login">
-                <Button className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3">
-                  العودة لصفحة تسجيل الدخول
-                </Button>
-              </Link>
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>ملاحظة:</strong> بعد النقر على رابط التأكيد في البريد الإلكتروني، 
-                  ستتمكن من تسجيل الدخول إلى حسابك.
-                </p>
+        <div className="max-w-md w-full space-y-8">
+          {/* Header */}
+          <div className="text-center">
+            <Link to="/" className="inline-flex items-center space-x-2 rtl:space-x-reverse mb-8">
+              <div className="w-12 h-12 bg-[#4CAF50] rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-xl">ج</span>
               </div>
-            </div>
+              <span className="text-2xl font-bold text-gray-900">Jardini Dyali</span>
+            </Link>
+            
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              {t('signup.create.account') || 'إنشاء حساب'} {t('auth.homeowner') || 'صاحب منزل'}
+            </h2>
+            <p className="text-gray-600">
+              {t('signup.fill.info') || 'املأ البيانات التالية لإنشاء حسابك'}
+            </p>
           </div>
+
+          {/* Form */}
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
+              {/* Name */}
+              <div>
+                <Label htmlFor="name" className="text-gray-700 font-medium">
+                  {t('auth.name')}
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="mt-2 text-right"
+                  placeholder={t('name.placeholder') || 'الاسم الكامل'}
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <Label htmlFor="email" className="text-gray-700 font-medium">
+                  {t('auth.email')}
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="mt-2 text-right"
+                  placeholder="example@email.com"
+                  required
+                />
+              </div>
+
+              {/* Password */}
+              <div>
+                <Label htmlFor="password" className="text-gray-700 font-medium">
+                  {t('auth.password')}
+                </Label>
+                <div className="relative mt-2">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="text-right pr-12"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">
+                  {t('auth.confirm.password')}
+                </Label>
+                <div className="relative mt-2">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="text-right pr-12"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg"
+                disabled={loading}
+              >
+                {loading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
+              </Button>
+            </div>
+
+            {/* Back Button */}
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="text-gray-600 hover:text-gray-800 font-medium"
+              >
+                ← العودة لاختيار نوع الحساب
+              </button>
+            </div>
+          </form>
         </div>
       </div>
       
