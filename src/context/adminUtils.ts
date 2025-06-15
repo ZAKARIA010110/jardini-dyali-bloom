@@ -20,41 +20,13 @@ export const createAdminUser = async () => {
       return { success: true, user: signInData.user };
     }
 
-    // If signin failed, try to create the admin user
-    if (signInError?.message.includes('Invalid login credentials')) {
-      console.log('Admin user does not exist, creating...');
-      
-      const { data: signupData, error: signupError } = await supabase.auth.signUp({
-        email: 'zakariadrk00@gmail.com',
-        password: 'admin123456',
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            name: 'Zakaria Admin',
-            user_type: 'admin'
-          }
-        }
-      });
-
-      if (signupError) {
-        if (signupError.message.includes('already registered')) {
-          console.log('Admin user already registered');
-          return { success: true, needsConfirmation: true };
-        }
-        throw signupError;
-      }
-
-      if (signupData.user) {
-        console.log('Admin user created successfully:', signupData.user.id);
-        
-        // Create admin profile immediately
-        await ensureAdminProfile(signupData.user.id);
-        
-        return { success: true, user: signupData.user, needsConfirmation: !signupData.session };
-      }
+    // If signin failed, the account might exist but need confirmation
+    if (signInError?.message.includes('Invalid login credentials') || signInError?.message.includes('Email not confirmed')) {
+      console.log('Admin user may exist but needs confirmation or credentials are wrong');
+      return { success: false, error: 'Admin account exists but may need email confirmation. Please check your email or contact support.' };
     }
 
-    throw signInError || new Error('Unknown error creating admin');
+    throw signInError || new Error('Unknown error during admin login');
   } catch (error: any) {
     console.error('Admin creation/login error:', error);
     return { success: false, error: error.message };
@@ -95,28 +67,14 @@ export const adminLogin = async () => {
     });
 
     if (error) {
-      // If login fails due to credentials, try to create the admin user first
+      console.error('Admin login error:', error);
+      
+      if (error.message.includes('Email not confirmed')) {
+        return { success: false, error: 'Admin account needs email confirmation. Please check your email.' };
+      }
+      
       if (error.message.includes('Invalid login credentials')) {
-        console.log('Login failed, attempting to create admin user...');
-        const createResult = await createAdminUser();
-        
-        if (createResult.success && !createResult.needsConfirmation) {
-          // Try login again after creation
-          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-            email: 'zakariadrk00@gmail.com',
-            password: 'admin123456'
-          });
-
-          if (retryData.user) {
-            // Ensure admin profile exists
-            await ensureAdminProfile(retryData.user.id);
-            return { success: true, user: retryData.user };
-          }
-          
-          return { success: false, error: retryError?.message || 'Login failed after account creation' };
-        }
-        
-        return createResult;
+        return { success: false, error: 'Invalid admin credentials. The admin account may not exist yet.' };
       }
       
       return { success: false, error: error.message };

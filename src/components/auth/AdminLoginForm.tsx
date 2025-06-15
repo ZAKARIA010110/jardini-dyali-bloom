@@ -39,10 +39,13 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
         onClose();
         // Redirect to admin dashboard
         navigate('/admin');
-      } else if (result.needsConfirmation) {
-        toast.info('تم إنشاء حساب المدير. يرجى تأكيد البريد الإلكتروني أولاً، ثم حاول مرة أخرى');
       } else {
         toast.error(result.error || 'فشل في تسجيل دخول المشرف');
+        
+        // If credentials issue, show help message
+        if (result.error?.includes('Invalid admin credentials')) {
+          toast.info('إذا كانت هذه المرة الأولى، فقد تحتاج إلى إنشاء الحساب أولاً من خلال صفحة التسجيل العادية');
+        }
       }
     } catch (error: any) {
       console.error('Admin login form error:', error);
@@ -130,6 +133,13 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
           <p className="text-xs text-blue-700 text-center">
             البيانات الافتراضية: zakariadrk00@gmail.com / admin123456
+          </p>
+        </div>
+
+        {/* Help note */}
+        <div className="mt-2 p-3 bg-yellow-50 rounded-lg">
+          <p className="text-xs text-yellow-700 text-center">
+            إذا لم يعمل تسجيل الدخول، تأكد من تأكيد البريد الإلكتروني أولاً
           </p>
         </div>
 
