@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Badge } from '../ui/badge';
-import { Eye, Check, X, Calendar } from 'lucide-react';
+import { Eye, Check, X, Calendar, RefreshCw, AlertCircle } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '../../context/LanguageContext';
@@ -33,6 +33,7 @@ const GardenerApplicationsTab: React.FC = () => {
   const [selectedApplication, setSelectedApplication] = useState<GardenerApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [adminNotes, setAdminNotes] = useState('');
+  const [connectionError, setConnectionError] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -40,7 +41,28 @@ const GardenerApplicationsTab: React.FC = () => {
 
   const fetchApplications = async () => {
     console.log('Fetching gardener applications...');
+    setLoading(true);
+    setConnectionError(false);
+    
     try {
+      // Test connection first
+      console.log('Testing Supabase connection...');
+      const { data: healthCheck, error: healthError } = await supabase
+        .from('gardener_applications')
+        .select('count')
+        .limit(1);
+
+      console.log('Health check result:', { healthCheck, healthError });
+
+      if (healthError) {
+        console.error('Health check failed:', healthError);
+        if (healthError.message.includes('Failed to fetch') || healthError.message.includes('NetworkError')) {
+          throw new Error('مشكلة في الاتصال بالخادم. تحقق من اتصالك بالإنترنت.');
+        }
+        throw healthError;
+      }
+
+      console.log('Connection successful, fetching applications...');
       const { data, error } = await supabase
         .from('gardener_applications')
         .select('*')
@@ -62,9 +84,16 @@ const GardenerApplicationsTab: React.FC = () => {
       
       console.log('Typed applications:', typedApplications);
       setApplications(typedApplications);
-    } catch (error) {
+      setConnectionError(false);
+    } catch (error: any) {
       console.error('Error fetching applications:', error);
-      toast.error('خطأ في تحميل الطلبات: ' + (error as any)?.message);
+      setConnectionError(true);
+      
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        toast.error('مشكلة في الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.');
+      } else {
+        toast.error('خطأ في تحميل الطلبات: ' + (error.message || 'خطأ غير متوقع'));
+      }
     } finally {
       setLoading(false);
     }
@@ -144,7 +173,28 @@ const GardenerApplicationsTab: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">جاري تحميل الطلبات...</div>
+        <div className="flex flex-col items-center">
+          <RefreshCw className="w-8 h-8 animate-spin text-green-600 mb-2" />
+          <div className="text-lg">جاري تحميل الطلبات...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (connectionError) {
+    return (
+      <div className="bg-white rounded-lg shadow mb-8 p-8">
+        <div className="flex flex-col items-center text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+          <h3 className="text-xl font-bold text-gray-900 mb-2">مشكلة في الاتصال</h3>
+          <p className="text-gray-600 mb-4">
+            لا يمكن الاتصال بقاعدة البيانات. تحقق من اتصالك بالإنترنت.
+          </p>
+          <Button onClick={fetchApplications} className="bg-green-600 hover:bg-green-700">
+            <RefreshCw className="w-4 h-4 ml-2" />
+            إعادة المحاولة
+          </Button>
+        </div>
       </div>
     );
   }
@@ -160,7 +210,8 @@ const GardenerApplicationsTab: React.FC = () => {
             طلبات البستانيين ({applications.length})
           </h2>
           <div className="flex items-center space-x-4 rtl:space-x-reverse">
-            <Button onClick={fetchApplications} variant="outline" size="sm">
+            <Button onClick={fetchApplications} variant="outline" size="sm" disabled={loading}>
+              <RefreshCw className={`w-4 h-4 ml-2 ${loading ? 'animate-spin' : ''}`} />
               تحديث
             </Button>
             <Input
