@@ -1,114 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/useAuth'; // UPDATED
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../integrations/supabase/client';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { User, Calendar, Settings, MapPin, Phone, Mail, Star } from 'lucide-react';
-
-interface UserProfile {
-  id: string;
-  name: string;
-  user_type: string;
-  avatar_url?: string;
-}
-
-interface Booking {
-  id: string;
-  gardener_name: string;
-  service: string;
-  booking_date: string;
-  booking_time: string;
-  status: string;
-  price: string;
-  created_at: string;
-}
+import AuthStatusCard from '../components/auth/AuthStatusCard';
+import { useAuthState } from '../hooks/useAuthState';
+import { useHomeownerData } from '../hooks/useHomeownerData';
+import { User, Calendar, Settings, Mail, MapPin } from 'lucide-react';
 
 const UserDashboard = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuthState();
+  const { bookings, profile, loading: dataLoading, updateProfile } = useHomeownerData();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [location, setLocation] = useState('');
 
-  useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-      fetchUserData();
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login');
     }
   }, [user, authLoading, navigate]);
 
-  const fetchUserData = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-
-      // Fetch user profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Error fetching profile:', profileError);
-      } else if (profileData) {
-        setProfile(profileData);
-        setName(profileData.name || '');
-      }
-
-      // Fetch user bookings
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('client_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (bookingsError) {
-        console.error('Error fetching bookings:', bookingsError);
-      } else {
-        setBookings(bookingsData || []);
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      toast.error('خطأ في تحميل البيانات');
-    } finally {
-      setLoading(false);
+  // Initialize name when profile loads
+  React.useEffect(() => {
+    if (profile?.name) {
+      setName(profile.name);
     }
-  };
+  }, [profile]);
 
   const handleUpdateProfile = async () => {
-    if (!user) return;
+    if (!name.trim()) {
+      return;
+    }
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          name,
-          user_type: profile?.user_type || 'homeowner'
-        });
-
-      if (error) throw error;
-
-      toast.success('تم تحديث الملف الشخصي بنجاح');
+      await updateProfile(name);
       setEditingProfile(false);
-      fetchUserData();
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast.error('خطأ في تحديث الملف الشخصي');
+    } catch (error) {
+      // Error is handled in the hook
     }
   };
 
@@ -132,7 +65,7 @@ const UserDashboard = () => {
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -141,6 +74,11 @@ const UserDashboard = () => {
         </div>
       </div>
     );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
   }
 
   return (
@@ -159,7 +97,11 @@ const UserDashboard = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Profile Section */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-6">
+              {/* Authentication Status */}
+              <AuthStatusCard showLogout={true} showDetails={true} />
+
+              {/* Profile Management */}
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center mb-6">
                   <User className="w-5 h-5 text-green-600 ml-2" />
@@ -183,19 +125,25 @@ const UserDashboard = () => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="mt-1"
+                        disabled={dataLoading}
                       />
                     </div>
                     <div className="flex space-x-2 rtl:space-x-reverse">
                       <Button
                         onClick={handleUpdateProfile}
                         className="flex-1 bg-green-600 hover:bg-green-700"
+                        disabled={dataLoading || !name.trim()}
                       >
-                        حفظ
+                        {dataLoading ? 'جاري الحفظ...' : 'حفظ'}
                       </Button>
                       <Button
-                        onClick={() => setEditingProfile(false)}
+                        onClick={() => {
+                          setEditingProfile(false);
+                          setName(profile?.name || '');
+                        }}
                         variant="outline"
                         className="flex-1"
+                        disabled={dataLoading}
                       >
                         إلغاء
                       </Button>
@@ -236,7 +184,12 @@ const UserDashboard = () => {
                   </Button>
                 </div>
 
-                {bookings.length === 0 ? (
+                {dataLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">جاري تحميل الحجوزات...</p>
+                  </div>
+                ) : bookings.length === 0 ? (
                   <div className="text-center py-12">
                     <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد حجوزات</h3>

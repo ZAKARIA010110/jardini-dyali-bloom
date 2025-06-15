@@ -2,12 +2,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
-import { useAuth } from '../../context/useAuth';
+import { useAuthState } from '../../hooks/useAuthState';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Eye, EyeOff, User, Home } from 'lucide-react';
-import { toast } from 'sonner';
 import { supabase } from '../../integrations/supabase/client';
 
 const LoginForm = () => {
@@ -16,21 +15,19 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [userType, setUserType] = useState<'gardener' | 'homeowner'>('homeowner');
   const { t } = useLanguage();
-  const { login, loading } = useAuth();
+  const { handleLogin, loading } = useAuthState();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
-      toast.error('يرجى ملء جميع الحقول');
       return;
     }
 
     try {
       console.log('Attempting login with:', email);
-      await login(email, password);
-      toast.success('تم تسجيل الدخول بنجاح');
+      await handleLogin(email, password);
       
       // Check user type and redirect accordingly
       const { data: { user } } = await supabase.auth.getUser();
@@ -53,6 +50,9 @@ const LoginForm = () => {
         if (profile?.user_type === 'admin') {
           console.log('Redirecting to admin dashboard');
           navigate('/admin');
+        } else if (profile?.user_type === 'homeowner' || userType === 'homeowner') {
+          console.log('Redirecting to dashboard');
+          navigate('/dashboard');
         } else {
           console.log('Redirecting to home page');
           navigate('/');
@@ -60,12 +60,7 @@ const LoginForm = () => {
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      
-      if (error.message.includes('مشكلة في الاتصال')) {
-        toast.error('مشكلة في الاتصال بالإنترنت. تحقق من اتصالك وحاول مرة أخرى');
-      } else {
-        toast.error(error.message || 'خطأ في البريد الإلكتروني أو كلمة المرور');
-      }
+      // Error handling is done in the hook
     }
   };
 
