@@ -7,13 +7,10 @@ import LoginHeader from '../components/auth/LoginHeader';
 import ConnectionStatus from '../components/auth/ConnectionStatus';
 import LoginForm from '../components/auth/LoginForm';
 import ForgotPasswordLink from '../components/auth/ForgotPasswordLink';
-import AdminDevButtons from '../components/auth/AdminDevButtons';
 import SignupLink from '../components/auth/SignupLink';
 import AdminAccessTrigger from '../components/auth/AdminAccessTrigger';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isRetrying, setIsRetrying] = useState(false);
   const { loading } = useAuth();
 
@@ -32,19 +29,11 @@ const LoginPage = () => {
           {/* Form */}
           <div className="space-y-6">
             <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
-              {/* Login Form Component - This handles its own email/password state */}
+              {/* Login Form Component */}
               <LoginForm />
 
               {/* Forgot Password */}
               <ForgotPasswordLink />
-
-              {/* Admin Development Buttons */}
-              <AdminDevButtons 
-                loading={loading}
-                isRetrying={isRetrying}
-                setEmail={setEmail}
-                setPassword={setPassword}
-              />
             </div>
 
             {/* Sign Up Link */}
