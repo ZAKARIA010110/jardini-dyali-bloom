@@ -15,30 +15,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [loading, setLoading] = useState(true);
   const [adminSetupComplete, setAdminSetupComplete] = useState(false);
 
-  // Auto-create admin user on app initialization
+  // Setup auth state listener and initial session
   useEffect(() => {
-    const setupAdminUser = async () => {
-      if (!adminSetupComplete) {
-        try {
-          console.log('Setting up admin user automatically...');
-          await createAdminUser();
-          setAdminSetupComplete(true);
-          console.log('Admin user setup completed');
-        } catch (error) {
-          console.error('Admin setup error:', error);
-          // Continue even if admin setup fails
-          setAdminSetupComplete(true);
-        }
-      }
-    };
-
-    setupAdminUser();
-  }, [adminSetupComplete]);
-
-  useEffect(() => {
-    // Only setup auth after admin setup is complete
-    if (!adminSetupComplete) return;
-
     console.log('Setting up auth state listener...');
     
     let retryCount = 0;
@@ -105,7 +83,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     };
 
     setupAuth();
-  }, [adminSetupComplete]);
+  }, []);
 
   const login = createLoginHandler(setLoading);
   const signup = createSignupHandler(setLoading);

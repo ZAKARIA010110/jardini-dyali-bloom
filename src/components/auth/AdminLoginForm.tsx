@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/useAuth';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Eye, EyeOff, Shield, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { forceAdminLogin } from '../../context/adminUtils';
 
 interface AdminLoginFormProps {
   isVisible: boolean;
@@ -17,7 +17,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
   const [email, setEmail] = useState('zakariadrk00@gmail.com');
   const [password, setPassword] = useState('admin123456');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loading } = useAuth();
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,15 +28,26 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
       return;
     }
 
+    setLoading(true);
+    
     try {
-      console.log('Admin login attempt:', email);
-      await login(email, password);
-      toast.success('تم تسجيل دخول المشرف بنجاح');
-      navigate('/admin');
-      onClose();
+      console.log('Admin login attempt with force login');
+      const result = await forceAdminLogin();
+      
+      if (result.success) {
+        toast.success('تم تسجيل دخول المشرف بنجاح');
+        navigate('/admin');
+        onClose();
+      } else if (result.needsConfirmation) {
+        toast.info('تم إنشاء حساب المدير. يرجى تأكيد البريد الإلكتروني أولاً، ثم حاول مرة أخرى');
+      } else {
+        toast.error(result.error || 'فشل في تسجيل دخول المشرف');
+      }
     } catch (error: any) {
       console.error('Admin login error:', error);
-      toast.error(error.message || 'خطأ في تسجيل دخول المشرف');
+      toast.error('حدث خطأ أثناء تسجيل الدخول');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,8 +125,15 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
           </Button>
         </form>
 
+        {/* Info note */}
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+          <p className="text-xs text-blue-700 text-center">
+            سيتم إنشاء حساب المدير تلقائياً إذا لم يكن موجوداً
+          </p>
+        </div>
+
         {/* Security note */}
-        <p className="text-xs text-gray-500 text-center mt-4">
+        <p className="text-xs text-gray-500 text-center mt-2">
           هذا النموذج مخصص للمشرفين المعتمدين فقط
         </p>
       </div>
