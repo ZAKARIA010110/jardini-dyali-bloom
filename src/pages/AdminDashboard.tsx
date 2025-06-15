@@ -1,11 +1,10 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { SidebarProvider, SidebarInset } from '../components/ui/sidebar';
 import { AdminDashboardProvider, useAdminDashboard } from '../components/admin/AdminDashboardProvider';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import { AdminDashboardHeader } from '../components/admin/AdminDashboardHeader';
 import { AdminTabRenderer } from '../components/admin/AdminTabRenderer';
-import { useLanguage } from '../context/LanguageContext';
 
 const AdminDashboardContent: React.FC = () => {
   const { 
@@ -16,24 +15,13 @@ const AdminDashboardContent: React.FC = () => {
     gardeners, 
     bookings 
   } = useAdminDashboard();
-  
-  const { language } = useLanguage();
-
-  // Set document direction based on language
-  useEffect(() => {
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = language;
-  }, [language]);
 
   return (
-    <div 
-      dir={language === 'ar' ? 'rtl' : 'ltr'} 
-      className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50"
-    >
+    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
       <SidebarProvider defaultOpen={false}>
         <div className="flex min-h-screen w-full">
           {/* Main Content Area */}
-          <SidebarInset className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out w-full">
+          <SidebarInset className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
             <AdminDashboardHeader />
             <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto">
               <div className="max-w-7xl mx-auto w-full">
@@ -42,7 +30,7 @@ const AdminDashboardContent: React.FC = () => {
             </main>
           </SidebarInset>
           
-          {/* Sidebar positioned appropriately for RTL/LTR */}
+          {/* Sidebar positioned on the right for RTL */}
           <AdminSidebar
             activeTab={activeTab}
             onTabChange={setActiveTab}
