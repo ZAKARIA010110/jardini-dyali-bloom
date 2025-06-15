@@ -9,6 +9,7 @@ import LoginForm from '../components/auth/LoginForm';
 import ForgotPasswordLink from '../components/auth/ForgotPasswordLink';
 import AdminDevButtons from '../components/auth/AdminDevButtons';
 import SignupLink from '../components/auth/SignupLink';
+import AdminAccessTrigger from '../components/auth/AdminAccessTrigger';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -51,6 +52,9 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Admin Access Trigger - Subtle gear icon in corner */}
+      <AdminAccessTrigger />
       
       <Footer />
     </div>

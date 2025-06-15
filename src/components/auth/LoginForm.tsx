@@ -100,57 +100,55 @@ const LoginForm = () => {
       </div>
 
       <form className="space-y-6" onSubmit={handleSubmit}>
-        <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
-          {/* Email */}
-          <div>
-            <Label htmlFor="email" className="text-gray-700 font-medium">
-              {t('auth.email')}
-            </Label>
+        {/* Email */}
+        <div>
+          <Label htmlFor="email" className="text-gray-700 font-medium">
+            {t('auth.email')}
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mt-2 text-right"
+            placeholder="example@email.com"
+            required
+          />
+        </div>
+
+        {/* Password */}
+        <div>
+          <Label htmlFor="password" className="text-gray-700 font-medium">
+            {t('auth.password')}
+          </Label>
+          <div className="relative mt-2">
             <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 text-right"
-              placeholder="example@email.com"
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="text-right pr-12"
+              placeholder="••••••••"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
           </div>
-
-          {/* Password */}
-          <div>
-            <Label htmlFor="password" className="text-gray-700 font-medium">
-              {t('auth.password')}
-            </Label>
-            <div className="relative mt-2">
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="text-right pr-12"
-                placeholder="••••••••"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg"
-            disabled={loading}
-          >
-            {loading ? 'جاري تسجيل الدخول...' : `تسجيل الدخول كـ ${userType === 'homeowner' ? 'صاحب منزل' : 'بستاني'}`}
-          </Button>
         </div>
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg"
+          disabled={loading}
+        >
+          {loading ? 'جاري تسجيل الدخول...' : `تسجيل الدخول كـ ${userType === 'homeowner' ? 'صاحب منزل' : 'بستاني'}`}
+        </Button>
       </form>
     </div>
   );
