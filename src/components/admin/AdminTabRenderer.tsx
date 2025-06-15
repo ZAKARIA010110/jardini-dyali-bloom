@@ -7,6 +7,7 @@ import AdminTabContent from './AdminTabContent';
 import HomeownersTab from './HomeownersTab';
 import AnalyticsTab from './AnalyticsTab';
 import SettingsTab from './SettingsTab';
+import GardenerApplicationsTab from './GardenerApplicationsTab';
 
 export const AdminTabRenderer: React.FC = () => {
   const { 
@@ -52,6 +53,8 @@ export const AdminTabRenderer: React.FC = () => {
             bookings={bookings}
           />
         );
+      case 'applications':
+        return <GardenerApplicationsTab />;
       case 'bookings':
         return (
           <AdminTabContent

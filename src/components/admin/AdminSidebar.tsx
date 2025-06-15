@@ -1,36 +1,12 @@
 
 import React from 'react';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarSeparator,
-} from '../ui/sidebar';
-import { 
-  Users, 
-  UserCheck, 
-  Calendar, 
-  MessageSquare, 
-  Settings, 
-  BarChart3, 
-  LogOut,
-  Shield,
-  Home
-} from 'lucide-react';
-import { Button } from '../ui/button';
-import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter } from '../ui/sidebar';
+import { Home, Users, Calendar, MessageSquare, BarChart3, Settings, LogOut, UserPlus, FileText } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface AdminSidebarProps {
-  activeTab: 'dashboard' | 'homeowners' | 'gardeners' | 'bookings' | 'chat' | 'analytics' | 'settings';
-  onTabChange: (tab: 'dashboard' | 'homeowners' | 'gardeners' | 'bookings' | 'chat' | 'analytics' | 'settings') => void;
+  activeTab: 'dashboard' | 'homeowners' | 'gardeners' | 'applications' | 'bookings' | 'chat' | 'analytics' | 'settings';
+  onTabChange: (tab: 'dashboard' | 'homeowners' | 'gardeners' | 'applications' | 'bookings' | 'chat' | 'analytics' | 'settings') => void;
   onLogout: () => void;
   homeownersCount: number;
   gardenersCount: number;
@@ -50,72 +26,76 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const menuItems = [
     {
       id: 'dashboard' as const,
-      title: language === 'ar' ? 'لوحة التحكم' : 'Tableau de bord',
+      label: language === 'ar' ? 'لوحة التحكم' : 'Tableau de bord',
       icon: Home,
       count: null
     },
     {
       id: 'homeowners' as const,
-      title: language === 'ar' ? 'أصحاب المنازل' : 'Propriétaires',
+      label: language === 'ar' ? 'أصحاب المنازل' : 'Propriétaires',
       icon: Users,
       count: homeownersCount
     },
     {
       id: 'gardeners' as const,
-      title: language === 'ar' ? 'البستانيون' : 'Jardiniers',
-      icon: UserCheck,
+      label: language === 'ar' ? 'البستانيون' : 'Jardiniers',
+      icon: UserPlus,
       count: gardenersCount
     },
     {
+      id: 'applications' as const,
+      label: language === 'ar' ? 'طلبات البستانيين' : 'Demandes jardiniers',
+      icon: FileText,
+      count: null
+    },
+    {
       id: 'bookings' as const,
-      title: language === 'ar' ? 'الحجوزات' : 'Réservations',
+      label: language === 'ar' ? 'الحجوزات' : 'Réservations',
       icon: Calendar,
       count: bookingsCount
     },
     {
       id: 'chat' as const,
-      title: language === 'ar' ? 'المحادثات' : 'Messages',
+      label: language === 'ar' ? 'المحادثات' : 'Messages',
       icon: MessageSquare,
       count: null
     },
     {
       id: 'analytics' as const,
-      title: language === 'ar' ? 'التحليلات' : 'Analyses',
+      label: language === 'ar' ? 'التحليلات' : 'Analyses',
       icon: BarChart3,
       count: null
     },
     {
       id: 'settings' as const,
-      title: language === 'ar' ? 'الإعدادات' : 'Paramètres',
+      label: language === 'ar' ? 'الإعدادات' : 'Paramètres',
       icon: Settings,
       count: null
     }
   ];
 
   return (
-    <Sidebar 
-      side="right" 
-      collapsible="icon" 
-      className="border-l border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg"
-    >
-      <SidebarHeader className="p-4 border-b border-gray-100">
-        <div className={`flex items-center space-x-3 group-data-[collapsible=icon]:justify-center ${language === 'ar' ? 'space-x-reverse' : ''}`}>
-          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
-            <Shield className="w-4 h-4 text-white" />
+    <Sidebar side={language === 'ar' ? 'right' : 'left'} className="w-64 border-l border-gray-200">
+      <SidebarHeader className="p-6 border-b border-gray-200">
+        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+          <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">
+            <Home className="w-6 h-6 text-white" />
           </div>
-          <div className="flex-1 group-data-[collapsible=icon]:hidden">
-            <h2 className="text-sm font-bold text-gray-900">Jardini Dyali</h2>
-            <p className="text-xs text-gray-500">
-              {language === 'ar' ? 'لوحة الإدارة' : 'Panneau d\'administration'}
+          <div className="text-right">
+            <h2 className="text-lg font-bold text-gray-900">
+              {language === 'ar' ? 'لوحة الإدارة' : 'Admin'}
+            </h2>
+            <p className="text-sm text-gray-600">
+              {language === 'ar' ? 'جردين دايالي' : 'Jardin Dyali'}
             </p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-4">
+      <SidebarContent className="p-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 group-data-[collapsible=icon]:hidden">
-            {language === 'ar' ? 'الإدارة الرئيسية' : 'Administration principale'}
+          <SidebarGroupLabel className={`text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+            {language === 'ar' ? 'القائمة الرئيسية' : 'Menu Principal'}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -123,24 +103,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onTabChange(item.id)}
-                    isActive={activeTab === item.id}
-                    tooltip={item.title}
-                    className={`w-full justify-between p-3 rounded-lg transition-all duration-200 hover:bg-emerald-50 hover:scale-[1.02] ${
+                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 ${language === 'ar' ? 'flex-row-reverse' : ''} ${
                       activeTab === item.id
-                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm'
-                        : 'text-gray-600 hover:text-emerald-600'
-                    } ${language === 'ar' ? 'flex-row-reverse' : ''}`}
+                        ? 'bg-emerald-50 text-emerald-700 border-l-4 border-emerald-500'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-emerald-600'
+                    }`}
                   >
                     <div className={`flex items-center space-x-3 ${language === 'ar' ? 'space-x-reverse' : ''}`}>
-                      <item.icon className="w-4 h-4 shrink-0" />
-                      <span className="font-medium group-data-[collapsible=icon]:hidden">{item.title}</span>
+                      <item.icon className="w-5 h-5 shrink-0" />
+                      <span className="font-medium text-sm">{item.label}</span>
                     </div>
                     {item.count !== null && (
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium group-data-[collapsible=icon]:hidden ${
-                        activeTab === item.id
-                          ? 'bg-emerald-200 text-emerald-800'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">
                         {item.count}
                       </span>
                     )}
@@ -152,35 +126,20 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarSeparator />
-
-      <SidebarFooter className="p-3">
-        <div className="bg-gray-50 rounded-lg p-3 group-data-[collapsible=icon]:p-2">
-          <div className={`flex items-center space-x-2 mb-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mb-0 ${language === 'ar' ? 'space-x-reverse' : ''}`}>
-            <Avatar className="w-7 h-7">
-              <AvatarFallback className="bg-emerald-100 text-emerald-700 text-xs font-medium">
-                ZA
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 group-data-[collapsible=icon]:hidden">
-              <p className="text-xs font-medium text-gray-900">Zakaria Admin</p>
-              <p className="text-xs text-gray-500">
-                {language === 'ar' ? 'مدير النظام' : 'Administrateur système'}
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={onLogout}
-            variant="outline"
-            size="sm"
-            className="w-full justify-center hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all duration-200 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0"
-          >
-            <LogOut className={`w-3 h-3 group-data-[collapsible=icon]:mr-0 ${language === 'ar' ? 'ml-1' : 'mr-1'}`} />
-            <span className="group-data-[collapsible=icon]:hidden text-xs">
-              {language === 'ar' ? 'تسجيل الخروج' : 'Déconnexion'}
-            </span>
-          </Button>
-        </div>
+      <SidebarFooter className="p-4 border-t border-gray-200">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={onLogout}
+              className={`w-full flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors ${language === 'ar' ? 'flex-row-reverse' : ''}`}
+            >
+              <LogOut className="w-5 h-5 shrink-0" />
+              <span className="font-medium text-sm mr-3 ml-3">
+                {language === 'ar' ? 'تسجيل الخروج' : 'Déconnexion'}
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

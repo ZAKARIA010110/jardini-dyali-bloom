@@ -35,8 +35,8 @@ interface Booking {
 }
 
 interface AdminDashboardContextType {
-  activeTab: 'dashboard' | 'homeowners' | 'gardeners' | 'bookings' | 'chat' | 'analytics' | 'settings';
-  setActiveTab: (tab: 'dashboard' | 'homeowners' | 'gardeners' | 'bookings' | 'chat' | 'analytics' | 'settings') => void;
+  activeTab: 'dashboard' | 'homeowners' | 'gardeners' | 'applications' | 'bookings' | 'chat' | 'analytics' | 'settings';
+  setActiveTab: (tab: 'dashboard' | 'homeowners' | 'gardeners' | 'applications' | 'bookings' | 'chat' | 'analytics' | 'settings') => void;
   gardeners: Gardener[];
   bookings: Booking[];
   homeownersCount: number;
@@ -64,7 +64,7 @@ interface AdminDashboardProviderProps {
 export const AdminDashboardProvider: React.FC<AdminDashboardProviderProps> = ({ children }) => {
   const { user, loading: authLoading, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'homeowners' | 'gardeners' | 'bookings' | 'chat' | 'analytics' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'homeowners' | 'gardeners' | 'applications' | 'bookings' | 'chat' | 'analytics' | 'settings'>('dashboard');
   const [gardeners, setGardeners] = useState<Gardener[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
