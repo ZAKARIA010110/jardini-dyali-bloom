@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { isAdminEmail } from '../context/adminUtils';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AdminHeader from '../components/admin/AdminHeader';
@@ -65,15 +65,15 @@ const AdminDashboard = () => {
     try {
       console.log('Checking admin status for user:', user.email);
       
-      // Check if this is the admin email
-      if (user.email === 'zakariadrk00@gmail.com') {
+      // Simple check: if this is the admin email, grant access
+      if (isAdminEmail(user.email || '')) {
         console.log('Admin email detected, granting access');
         setIsAdmin(true);
         fetchData();
         return;
       }
 
-      // Also check database for admin role
+      // Also check database for admin role as fallback
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('user_type')
@@ -82,13 +82,7 @@ const AdminDashboard = () => {
 
       if (error) {
         console.error('Error checking admin status:', error);
-        // If error fetching profile but this is admin email, still grant access
-        if (user.email === 'zakariadrk00@gmail.com') {
-          setIsAdmin(true);
-          fetchData();
-          return;
-        }
-        navigate('/login');
+        navigate('/');
         return;
       }
 
@@ -104,13 +98,7 @@ const AdminDashboard = () => {
       fetchData();
     } catch (error) {
       console.error('Error in checkAdminStatus:', error);
-      // If this is admin email, grant access even on error
-      if (user?.email === 'zakariadrk00@gmail.com') {
-        setIsAdmin(true);
-        fetchData();
-      } else {
-        navigate('/login');
-      }
+      navigate('/');
     }
   };
 

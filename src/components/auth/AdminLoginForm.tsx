@@ -41,11 +41,6 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
         navigate('/admin');
       } else {
         toast.error(result.error || 'فشل في تسجيل دخول المشرف');
-        
-        // If credentials issue, show help message
-        if (result.error?.includes('Invalid admin credentials')) {
-          toast.info('إذا كانت هذه المرة الأولى، فقد تحتاج إلى إنشاء الحساب أولاً من خلال صفحة التسجيل العادية');
-        }
       }
     } catch (error: any) {
       console.error('Admin login form error:', error);
@@ -136,10 +131,10 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
           </p>
         </div>
 
-        {/* Help note */}
-        <div className="mt-2 p-3 bg-yellow-50 rounded-lg">
-          <p className="text-xs text-yellow-700 text-center">
-            إذا لم يعمل تسجيل الدخول، تأكد من تأكيد البريد الإلكتروني أولاً
+        {/* No email verification needed note */}
+        <div className="mt-2 p-3 bg-green-50 rounded-lg">
+          <p className="text-xs text-green-700 text-center">
+            الدخول مباشر بدون تأكيد البريد الإلكتروني
           </p>
         </div>
 

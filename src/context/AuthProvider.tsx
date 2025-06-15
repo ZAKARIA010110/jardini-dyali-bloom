@@ -4,7 +4,7 @@ import { supabase } from '../integrations/supabase/client';
 import { AuthContextType, AuthUser } from './authTypes';
 import { User, Session } from '@supabase/supabase-js';
 import { createLoginHandler, createSignupHandler, createEmailVerificationHandler, createAuthStateHandler } from './authHandlers';
-import { createAdminUser } from './adminUtils';
+import { adminLogin, isAdminEmail } from './adminUtils';
 import { ensureAdminProfile, fetchUserProfile, createAuthUser } from './authUtils';
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,7 +42,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             if (session?.user) {
               try {
                 // For admin user, ensure profile exists
-                if (session.user.email === 'zakariadrk00@gmail.com') {
+                if (isAdminEmail(session.user.email || '')) {
                   await ensureAdminProfile(session.user.id);
                 }
 
@@ -58,18 +58,6 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
               setUser(null);
             }
             setLoading(false);
-
-            // Try to create admin user in background (only once)
-            if (!session?.user) {
-              setTimeout(async () => {
-                try {
-                  console.log('Background admin user check...');
-                  await createAdminUser();
-                } catch (adminError) {
-                  console.error('Background admin creation failed:', adminError);
-                }
-              }, 2000);
-            }
 
           } catch (error) {
             console.error('Error getting initial session:', error);
@@ -100,6 +88,18 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const login = createLoginHandler(setLoading);
   const signup = createSignupHandler(setLoading);
   const sendEmailVerification = createEmailVerificationHandler();
+
+  // Enhanced admin login function
+  const createAdminUser = async () => {
+    try {
+      console.log('Admin login request...');
+      const result = await adminLogin();
+      return result;
+    } catch (error: any) {
+      console.error('Admin creation error:', error);
+      return { success: false, error: error.message };
+    }
+  };
 
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
