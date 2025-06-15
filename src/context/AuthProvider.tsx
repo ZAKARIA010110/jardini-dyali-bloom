@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { AuthContextType, AuthUser } from './authTypes';
@@ -26,7 +27,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             if (session?.user) {
               try {
                 // For admin user, ensure profile exists
-                if (session.user.email === 'zakariadrk45@gmail.com') {
+                if (session.user.email === 'zakariadrk00@gmail.com') {
                   const { error: profileError } = await supabase
                     .from('profiles')
                     .upsert({
@@ -87,7 +88,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             if (session?.user) {
               try {
                 // For admin user, ensure profile exists
-                if (session.user.email === 'zakariadrk45@gmail.com') {
+                if (session.user.email === 'zakariadrk00@gmail.com') {
                   const { error: profileError } = await supabase
                     .from('profiles')
                     .upsert({
@@ -170,8 +171,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       }
 
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: 'zakariadrk45@gmail.com',
-        password: 'admin123@',
+        email: 'zakariadrk00@gmail.com',
+        password: 'admin123456',
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
@@ -236,7 +237,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       console.log('Login successful for:', data.user?.email);
 
       // For admin user, ensure profile exists after login
-      if (email === 'zakariadrk45@gmail.com' && data.user) {
+      if (email === 'zakariadrk00@gmail.com' && data.user) {
         try {
           const { error: profileError } = await supabase
             .from('profiles')

@@ -24,20 +24,20 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
       
       // First check if admin already exists
       const { data: userListData } = await supabase.auth.admin.listUsers();
-      const adminExists = userListData?.users?.find((user: any) => user.email === 'zakariadrk45@gmail.com');
+      const adminExists = userListData?.users?.find((user: any) => user.email === 'zakariadrk00@gmail.com');
       
       if (adminExists) {
         console.log('Admin user already exists, can login directly');
         toast.success('حساب المدير موجود بالفعل. يمكنك تسجيل الدخول مباشرة');
-        setEmail('zakariadrk45@gmail.com');
-        setPassword('admin123@');
+        setEmail('zakariadrk00@gmail.com');
+        setPassword('admin123456');
         return;
       }
 
       // Create new admin user
       const { data: signupData, error: signupError } = await supabase.auth.signUp({
-        email: 'zakariadrk45@gmail.com',
-        password: 'admin123@',
+        email: 'zakariadrk00@gmail.com',
+        password: 'admin123456',
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
@@ -50,8 +50,8 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
       if (signupError) {
         if (signupError.message.includes('already registered')) {
           toast.info('حساب المدير موجود بالفعل. يمكنك تسجيل الدخول مباشرة');
-          setEmail('zakariadrk45@gmail.com');
-          setPassword('admin123@');
+          setEmail('zakariadrk00@gmail.com');
+          setPassword('admin123456');
           return;
         }
         throw signupError;
@@ -60,8 +60,8 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
       if (signupData.user) {
         console.log('Admin user created:', signupData.user.id);
         toast.success('تم إنشاء حساب المدير بنجاح! يمكنك الآن تسجيل الدخول');
-        setEmail('zakariadrk45@gmail.com');
-        setPassword('admin123@');
+        setEmail('zakariadrk00@gmail.com');
+        setPassword('admin123456');
       }
     } catch (error: any) {
       console.error('Admin creation error:', error);
@@ -207,28 +207,30 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
 
   return (
     <>
-      {/* Admin Setup Button - For Development */}
-      <Button
-        type="button"
-        onClick={handleCreateAdmin}
-        variant="outline"
-        className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
-        disabled={loading || isRetrying}
-      >
-        <Settings className="w-4 h-4 ml-2" />
-        إعداد حساب المدير (للتطوير)
-      </Button>
+      {/* Admin Setup Button - Hidden in production */}
+      <div className="hidden">
+        <Button
+          type="button"
+          onClick={handleCreateAdmin}
+          variant="outline"
+          className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
+          disabled={loading || isRetrying}
+        >
+          <Settings className="w-4 h-4 ml-2" />
+          إعداد حساب المدير (للتطوير)
+        </Button>
 
-      {/* Reset Data Button - For Development */}
-      <Button
-        type="button"
-        onClick={handleResetData}
-        variant="outline"
-        className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
-        disabled={loading || isRetrying}
-      >
-        إعادة تعيين البيانات التجريبية
-      </Button>
+        {/* Reset Data Button - Hidden in production */}
+        <Button
+          type="button"
+          onClick={handleResetData}
+          variant="outline"
+          className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
+          disabled={loading || isRetrying}
+        >
+          إعادة تعيين البيانات التجريبية
+        </Button>
+      </div>
     </>
   );
 };
