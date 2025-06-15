@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -361,6 +360,7 @@ const BecomeGardenerPage = () => {
                   />
                 </div>
 
+                {/* Services */}
                 <div>
                   <Label className="text-gray-700 font-medium block mb-3">
                     الخدمات التي تقدمها * (اختر واحدة أو أكثر)
@@ -387,6 +387,7 @@ const BecomeGardenerPage = () => {
                   </div>
                 </div>
 
+                {/* Languages */}
                 <div>
                   <Label className="text-gray-700 font-medium block mb-3">
                     اللغات التي تتحدث بها * (اختر واحدة أو أكثر)
