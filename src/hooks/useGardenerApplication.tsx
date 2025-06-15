@@ -24,7 +24,7 @@ export const useGardenerApplication = () => {
     try {
       console.log('Submitting gardener application:', data);
 
-      // Submit application without requiring authentication
+      // Submit application without requiring authentication (public registration)
       const { error } = await supabase
         .from('gardener_applications')
         .insert({
@@ -38,7 +38,8 @@ export const useGardenerApplication = () => {
           services: data.services,
           languages: data.languages,
           avatar_url: data.avatar_url,
-          status: 'pending'
+          status: 'pending',
+          user_id: null // Explicitly set to null for public applications
         });
 
       if (error) {
@@ -71,6 +72,7 @@ export const useGardenerApplication = () => {
 
       if (uploadError) {
         console.error('Error uploading avatar:', uploadError);
+        toast.error('حدث خطأ في رفع الصورة');
         return null;
       }
 
@@ -81,6 +83,7 @@ export const useGardenerApplication = () => {
       return publicUrl;
     } catch (error) {
       console.error('Avatar upload error:', error);
+      toast.error('حدث خطأ في رفع الصورة');
       return null;
     }
   };
