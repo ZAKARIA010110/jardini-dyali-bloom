@@ -17,7 +17,7 @@ const AdminDashboardContent: React.FC = () => {
   } = useAdminDashboard();
 
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
         <AdminSidebar
           activeTab={activeTab}
@@ -27,10 +27,10 @@ const AdminDashboardContent: React.FC = () => {
           gardenersCount={gardeners.length}
           bookingsCount={bookings.length}
         />
-        <SidebarInset className="flex-1 flex flex-col min-w-0">
+        <SidebarInset className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
           <AdminDashboardHeader />
-          <main className="flex-1 p-4 lg:p-6 overflow-auto">
-            <div className="max-w-7xl mx-auto">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto bg-transparent">
+            <div className="max-w-7xl mx-auto w-full">
               <AdminTabRenderer />
             </div>
           </main>
