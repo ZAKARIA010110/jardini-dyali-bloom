@@ -5,7 +5,7 @@ import { useAuth } from '../context/useAuth';
 import { supabase } from '../integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { isAdminEmail } from '../context/adminUtils';
-import { SidebarProvider, SidebarInset } from '../components/ui/sidebar';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '../components/ui/sidebar';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import AdminHeader from '../components/admin/AdminHeader';
 import AdminStatsGrid from '../components/admin/AdminStatsGrid';
@@ -248,8 +248,16 @@ const AdminDashboard = () => {
     }
   };
 
+  if (authLoading || loading) {
+    return <AdminLoadingState />;
+  }
+
+  if (!isAdmin) {
+    return <AdminAccessDenied />;
+  }
+
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
         <AdminSidebar
           activeTab={activeTab}
@@ -260,7 +268,20 @@ const AdminDashboard = () => {
           bookingsCount={bookings.length}
         />
         <SidebarInset className="flex-1">
-          <div className="p-6 lg:p-8">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-sm px-4">
+            <SidebarTrigger className="p-2 hover:bg-gray-100 rounded-lg transition-colors" />
+            <div className="h-6 w-px bg-gray-200 mx-2" />
+            <h1 className="text-lg font-semibold text-gray-900">
+              {activeTab === 'dashboard' && 'لوحة التحكم'}
+              {activeTab === 'homeowners' && 'أصحاب المنازل'}
+              {activeTab === 'gardeners' && 'البستانيون'}
+              {activeTab === 'bookings' && 'الحجوزات'}
+              {activeTab === 'chat' && 'المحادثات'}
+              {activeTab === 'analytics' && 'التحليلات'}
+              {activeTab === 'settings' && 'الإعدادات'}
+            </h1>
+          </header>
+          <div className="flex-1 p-6 lg:p-8 overflow-auto">
             {renderTabContent()}
           </div>
         </SidebarInset>
