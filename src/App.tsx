@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { LanguageProvider } from './context/LanguageContext';
 import AuthProvider from './context/AuthProvider';
+import EmailVerificationHandler from './components/auth/EmailVerificationHandler';
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -33,6 +34,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <EmailVerificationHandler />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
