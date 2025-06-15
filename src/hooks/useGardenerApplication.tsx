@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
-import { useAuth } from '../context/useAuth';
 import { toast } from 'sonner';
 
 export interface GardenerApplicationData {
@@ -19,22 +18,16 @@ export interface GardenerApplicationData {
 
 export const useGardenerApplication = () => {
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
 
   const submitApplication = async (data: GardenerApplicationData): Promise<boolean> => {
-    if (!user) {
-      toast.error('يجب تسجيل الدخول أولاً');
-      return false;
-    }
-
     setLoading(true);
     try {
       console.log('Submitting gardener application:', data);
 
+      // Submit application without requiring authentication
       const { error } = await supabase
         .from('gardener_applications')
         .insert({
-          user_id: user.id,
           name: data.name,
           email: data.email,
           phone: data.phone,
@@ -67,11 +60,9 @@ export const useGardenerApplication = () => {
   };
 
   const uploadAvatar = async (file: File): Promise<string | null> => {
-    if (!user) return null;
-
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `gardener-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
       const { error: uploadError } = await supabase.storage

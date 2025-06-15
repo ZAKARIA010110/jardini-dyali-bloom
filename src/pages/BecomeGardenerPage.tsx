@@ -2,12 +2,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/useAuth';
 import { useGardenerApplication } from '../hooks/useGardenerApplication';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Upload, Eye, EyeOff, Camera } from 'lucide-react';
+import { Upload, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -15,7 +14,6 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const BecomeGardenerPage = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { submitApplication, uploadAvatar, loading } = useGardenerApplication();
   const [step, setStep] = useState(1);
@@ -23,14 +21,12 @@ const BecomeGardenerPage = () => {
     // Personal Info
     name: '',
     email: '',
-    password: '',
-    confirmPassword: '',
     phone: '',
     
     // Professional Info
     city: '',
     experience: '',
-    daily_rate: '', // Changed from hourlyRate to daily_rate
+    daily_rate: '',
     bio: '',
     services: [] as string[],
     languages: [] as string[],
@@ -39,16 +35,6 @@ const BecomeGardenerPage = () => {
     avatar: null as File | null,
     avatarPreview: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Redirect to login if not authenticated
-  React.useEffect(() => {
-    if (!user) {
-      toast.error('يجب تسجيل الدخول أولاً لتقديم طلب انضمام كبستاني');
-      navigate('/login');
-    }
-  }, [user, navigate]);
 
   const availableServices = [
     'تصميم الحدائق',
@@ -134,8 +120,17 @@ const BecomeGardenerPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.city || !formData.experience || !formData.daily_rate || !formData.bio) {
+    // Validate all required fields
+    if (!formData.name || !formData.email || !formData.phone || !formData.city || 
+        !formData.experience || !formData.daily_rate || !formData.bio) {
       toast.error('يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('يرجى إدخال بريد إلكتروني صحيح');
       return;
     }
 
@@ -158,8 +153,8 @@ const BecomeGardenerPage = () => {
     }
 
     const applicationData = {
-      name: user?.name || formData.name,
-      email: user?.email || formData.email,
+      name: formData.name,
+      email: formData.email,
       phone: formData.phone,
       city: formData.city,
       experience: formData.experience,
@@ -175,10 +170,6 @@ const BecomeGardenerPage = () => {
       setStep(2); // Show success step
     }
   };
-
-  if (!user) {
-    return null; // Will redirect to login
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
@@ -196,11 +187,11 @@ const BecomeGardenerPage = () => {
             </p>
           </div>
 
-          {/* Professional Information Form */}
+          {/* Application Form */}
           {step === 1 && (
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                المعلومات المهنية
+                معلومات التسجيل
               </h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -242,6 +233,41 @@ const BecomeGardenerPage = () => {
                   </div>
                 </div>
 
+                {/* Personal Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="name" className="text-gray-700 font-medium">
+                      الاسم الكامل *
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="mt-2 text-right"
+                      placeholder="أدخل اسمك الكامل"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="email" className="text-gray-700 font-medium">
+                      البريد الإلكتروني *
+                    </Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="mt-2 text-right"
+                      placeholder="example@email.com"
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="phone" className="text-gray-700 font-medium">
@@ -279,6 +305,7 @@ const BecomeGardenerPage = () => {
                   </div>
                 </div>
 
+                {/* Professional Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="experience" className="text-gray-700 font-medium">
@@ -389,7 +416,7 @@ const BecomeGardenerPage = () => {
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                   <p className="text-yellow-800 text-sm">
                     <strong>ملاحظة:</strong> سيتم مراجعة طلبك من قبل فريقنا خلال 24 ساعة. 
-                    ستتلقى إشعاراً بمجرد الموافقة على طلبك أو رفضه.
+                    ستتلقى إشعاراً على بريدك الإلكتروني بمجرد الموافقة على طلبك أو رفضه.
                   </p>
                 </div>
 
@@ -418,7 +445,7 @@ const BecomeGardenerPage = () => {
               </h2>
               <p className="text-gray-600 mb-6">
                 شكراً لك! تم إرسال طلب انضمامك كبستاني محترف. 
-                سيتم مراجعة طلبك من قبل فريقنا خلال 24 ساعة وستتلقى إشعاراً بالنتيجة.
+                سيتم مراجعة طلبك من قبل فريقنا خلال 24 ساعة وستتلقى إشعاراً على بريدك الإلكتروني بالنتيجة.
               </p>
               
               <Link to="/">
