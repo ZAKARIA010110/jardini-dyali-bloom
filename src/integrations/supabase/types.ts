@@ -33,6 +33,36 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_date: string | null
@@ -85,6 +115,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gardener_applications: {
+        Row: {
+          admin_notes: string | null
+          avatar_url: string | null
+          bio: string
+          city: string
+          created_at: string
+          daily_rate: number
+          email: string
+          experience: string
+          id: string
+          languages: string[]
+          name: string
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          services: string[]
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          avatar_url?: string | null
+          bio: string
+          city: string
+          created_at?: string
+          daily_rate: number
+          email: string
+          experience: string
+          id?: string
+          languages: string[]
+          name: string
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          services: string[]
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          avatar_url?: string | null
+          bio?: string
+          city?: string
+          created_at?: string
+          daily_rate?: number
+          email?: string
+          experience?: string
+          id?: string
+          languages?: string[]
+          name?: string
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          services?: string[]
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       gardeners: {
         Row: {
@@ -188,6 +281,39 @@ export type Database = {
           created_at?: string
           id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string | null
         }
         Relationships: []
       }

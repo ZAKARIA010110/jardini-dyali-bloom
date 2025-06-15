@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/useAuth';
+import { useGardenerApplication } from '../hooks/useGardenerApplication';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -13,6 +15,9 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const BecomeGardenerPage = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { submitApplication, uploadAvatar, loading } = useGardenerApplication();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     // Personal Info
@@ -25,7 +30,7 @@ const BecomeGardenerPage = () => {
     // Professional Info
     city: '',
     experience: '',
-    hourlyRate: '',
+    daily_rate: '', // Changed from hourlyRate to daily_rate
     bio: '',
     services: [] as string[],
     languages: [] as string[],
@@ -36,7 +41,14 @@ const BecomeGardenerPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!user) {
+      toast.error('يجب تسجيل الدخول أولاً لتقديم طلب انضمام كبستاني');
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const availableServices = [
     'تصميم الحدائق',
@@ -119,31 +131,10 @@ const BecomeGardenerPage = () => {
     });
   };
 
-  const handleStep1Submit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword || !formData.phone) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('كلمة المرور غير متطابقة');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast.error('كلمة المرور يجب أن تكون على الأقل 6 أحرف');
-      return;
-    }
-
-    setStep(2);
-  };
-
-  const handleStep2Submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.city || !formData.experience || !formData.hourlyRate || !formData.bio) {
+    if (!formData.city || !formData.experience || !formData.daily_rate || !formData.bio) {
       toast.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
@@ -158,25 +149,36 @@ const BecomeGardenerPage = () => {
       return;
     }
 
-    setStep(3);
-  };
+    let avatarUrl = '';
+    if (formData.avatar) {
+      const uploadedUrl = await uploadAvatar(formData.avatar);
+      if (uploadedUrl) {
+        avatarUrl = uploadedUrl;
+      }
+    }
 
-  const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      // Simulate account creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast.success('تم إنشاء حسابك بنجاح! سيتم مراجعة طلبك خلال 24 ساعة');
-      setStep(4);
-    } catch (error) {
-      toast.error('حدث خطأ في إنشاء الحساب');
-    } finally {
-      setLoading(false);
+    const applicationData = {
+      name: user?.name || formData.name,
+      email: user?.email || formData.email,
+      phone: formData.phone,
+      city: formData.city,
+      experience: formData.experience,
+      daily_rate: parseInt(formData.daily_rate),
+      bio: formData.bio,
+      services: formData.services,
+      languages: formData.languages,
+      avatar_url: avatarUrl
+    };
+
+    const success = await submitApplication(applicationData);
+    if (success) {
+      setStep(2); // Show success step
     }
   };
+
+  if (!user) {
+    return null; // Will redirect to login
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
@@ -194,159 +196,14 @@ const BecomeGardenerPage = () => {
             </p>
           </div>
 
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-center space-x-4 rtl:space-x-reverse mb-4">
-              {[1, 2, 3].map((stepNum) => (
-                <div key={stepNum} className="flex items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                    step >= stepNum ? 'bg-[#4CAF50] text-white' : 'bg-gray-200 text-gray-600'
-                  }`}>
-                    {stepNum}
-                  </div>
-                  {stepNum < 3 && (
-                    <div className={`w-16 h-1 mx-2 ${
-                      step > stepNum ? 'bg-[#4CAF50]' : 'bg-gray-200'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="text-center text-sm text-gray-600">
-              {step === 1 && 'المعلومات الشخصية'}
-              {step === 2 && 'المعلومات المهنية'}
-              {step === 3 && 'المراجعة والتأكيد'}
-            </div>
-          </div>
-
-          {/* Step 1: Personal Information */}
+          {/* Professional Information Form */}
           {step === 1 && (
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                المعلومات الشخصية
-              </h2>
-              
-              <form onSubmit={handleStep1Submit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="name" className="text-gray-700 font-medium">
-                      الاسم الكامل *
-                    </Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      type="text"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="mt-2 text-right"
-                      placeholder="أدخل اسمك الكامل"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone" className="text-gray-700 font-medium">
-                      رقم الهاتف *
-                    </Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="mt-2 text-right"
-                      placeholder="06XXXXXXXX"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="email" className="text-gray-700 font-medium">
-                    البريد الإلكتروني *
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="mt-2 text-right"
-                    placeholder="example@email.com"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="password" className="text-gray-700 font-medium">
-                      كلمة المرور *
-                    </Label>
-                    <div className="relative mt-2">
-                      <Input
-                        id="password"
-                        name="password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className="text-right pr-12"
-                        placeholder="••••••••"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">
-                      تأكيد كلمة المرور *
-                    </Label>
-                    <div className="relative mt-2">
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                        className="text-right pr-12"
-                        placeholder="••••••••"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg"
-                >
-                  التالي
-                </Button>
-              </form>
-            </div>
-          )}
-
-          {/* Step 2: Professional Information */}
-          {step === 2 && (
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 المعلومات المهنية
               </h2>
               
-              <form onSubmit={handleStep2Submit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Profile Image */}
                 <div className="text-center">
                   <Label className="text-gray-700 font-medium block mb-4">
@@ -387,6 +244,22 @@ const BecomeGardenerPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
+                    <Label htmlFor="phone" className="text-gray-700 font-medium">
+                      رقم الهاتف *
+                    </Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="mt-2 text-right"
+                      placeholder="06XXXXXXXX"
+                      required
+                    />
+                  </div>
+
+                  <div>
                     <Label htmlFor="city" className="text-gray-700 font-medium">
                       المدينة *
                     </Label>
@@ -404,7 +277,9 @@ const BecomeGardenerPage = () => {
                       ))}
                     </select>
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="experience" className="text-gray-700 font-medium">
                       سنوات الخبرة *
@@ -423,24 +298,24 @@ const BecomeGardenerPage = () => {
                       ))}
                     </select>
                   </div>
-                </div>
 
-                <div>
-                  <Label htmlFor="hourlyRate" className="text-gray-700 font-medium">
-                    السعر بالساعة (درهم) *
-                  </Label>
-                  <Input
-                    id="hourlyRate"
-                    name="hourlyRate"
-                    type="number"
-                    value={formData.hourlyRate}
-                    onChange={handleInputChange}
-                    className="mt-2 text-right"
-                    placeholder="مثال: 150"
-                    min="50"
-                    max="1000"
-                    required
-                  />
+                  <div>
+                    <Label htmlFor="daily_rate" className="text-gray-700 font-medium">
+                      السعر باليوم الواحد (درهم) *
+                    </Label>
+                    <Input
+                      id="daily_rate"
+                      name="daily_rate"
+                      type="number"
+                      value={formData.daily_rate}
+                      onChange={handleInputChange}
+                      className="mt-2 text-right"
+                      placeholder="مثال: 500"
+                      min="200"
+                      max="5000"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -511,136 +386,26 @@ const BecomeGardenerPage = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setStep(1)}
-                    className="flex-1 border-gray-300 text-gray-700"
-                  >
-                    السابق
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="flex-1 bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3"
-                  >
-                    التالي
-                  </Button>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <p className="text-yellow-800 text-sm">
+                    <strong>ملاحظة:</strong> سيتم مراجعة طلبك من قبل فريقنا خلال 24 ساعة. 
+                    ستتلقى إشعاراً بمجرد الموافقة على طلبك أو رفضه.
+                  </p>
                 </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg"
+                >
+                  {loading ? 'جاري الإرسال...' : 'إرسال الطلب'}
+                </Button>
               </form>
             </div>
           )}
 
-          {/* Step 3: Review and Confirm */}
-          {step === 3 && (
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                مراجعة المعلومات
-              </h2>
-              
-              <div className="space-y-6">
-                {/* Profile Preview */}
-                <div className="flex items-center space-x-6 rtl:space-x-reverse p-6 bg-gray-50 rounded-lg">
-                  <div className="w-20 h-20 bg-gray-200 rounded-full overflow-hidden">
-                    {formData.avatarPreview ? (
-                      <img 
-                        src={formData.avatarPreview} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Camera className="w-8 h-8 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{formData.name}</h3>
-                    <p className="text-gray-600">{formData.city}</p>
-                    <p className="text-[#4CAF50] font-semibold">{formData.hourlyRate} درهم/ساعة</p>
-                  </div>
-                </div>
-
-                {/* Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">المعلومات الشخصية:</h4>
-                    <ul className="space-y-1 text-gray-700">
-                      <li>الاسم: {formData.name}</li>
-                      <li>البريد الإلكتروني: {formData.email}</li>
-                      <li>الهاتف: {formData.phone}</li>
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">المعلومات المهنية:</h4>
-                    <ul className="space-y-1 text-gray-700">
-                      <li>المدينة: {formData.city}</li>
-                      <li>الخبرة: {formData.experience}</li>
-                      <li>السعر: {formData.hourlyRate} درهم/ساعة</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">النبذة:</h4>
-                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{formData.bio}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">الخدمات:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.services.map((service) => (
-                      <span key={service} className="bg-green-50 text-[#4CAF50] px-3 py-1 rounded-full text-sm">
-                        {service}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">اللغات:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.languages.map((language) => (
-                      <span key={language} className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm">
-                        {language}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <form onSubmit={handleFinalSubmit}>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                    <p className="text-yellow-800 text-sm">
-                      <strong>ملاحظة:</strong> سيتم مراجعة طلبك من قبل فريقنا خلال 24 ساعة. 
-                      ستتلقى بريداً إلكترونياً بمجرد الموافقة على طلبك.
-                    </p>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setStep(2)}
-                      className="flex-1 border-gray-300 text-gray-700"
-                    >
-                      السابق
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="flex-1 bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3"
-                    >
-                      {loading ? 'جاري الإنشاء...' : 'إنشاء الحساب'}
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Success */}
-          {step === 4 && (
+          {/* Success Step */}
+          {step === 2 && (
             <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <div className="w-10 h-10 bg-[#4CAF50] rounded-full flex items-center justify-center">
@@ -652,8 +417,8 @@ const BecomeGardenerPage = () => {
                 تم إرسال طلبك بنجاح!
               </h2>
               <p className="text-gray-600 mb-6">
-                شكراً لك {formData.name}! تم إرسال طلب انضمامك كبستاني محترف. 
-                سيتم مراجعة طلبك من قبل فريقنا خلال 24 ساعة وستتلقى بريداً إلكترونياً بالنتيجة.
+                شكراً لك! تم إرسال طلب انضمامك كبستاني محترف. 
+                سيتم مراجعة طلبك من قبل فريقنا خلال 24 ساعة وستتلقى إشعاراً بالنتيجة.
               </p>
               
               <Link to="/">
