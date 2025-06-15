@@ -106,7 +106,7 @@ const ensureAdminProfile = async (userId: string) => {
 };
 
 // Simple admin check function
-export const isAdminEmail = (email: string) => {
+export const isAdminEmail = (email: string): boolean => {
   return email === 'zakariadrk00@gmail.com';
 };
 
@@ -161,6 +161,53 @@ export const createAdminForCurrentUser = async () => {
     return { success: true };
   } catch (error: any) {
     console.error('Error in createAdminForCurrentUser:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Check if system has any admin user
+export const checkSystemHasAdmin = async () => {
+  try {
+    const { data, error } = await supabase.rpc('has_admin_user');
+    
+    if (error) {
+      console.error('Error checking for admin users:', error);
+      return false;
+    }
+    
+    return data === true;
+  } catch (error) {
+    console.error('Error in checkSystemHasAdmin:', error);
+    return false;
+  }
+};
+
+// Emergency admin creation for development
+export const createEmergencyAdmin = async () => {
+  try {
+    console.log('Creating emergency admin...');
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return { success: false, error: 'No user logged in' };
+    }
+
+    // Force create admin profile using the security definer function
+    const { error } = await supabase.rpc('create_admin_profile', {
+      user_id: user.id,
+      user_email: user.email || 'emergency@admin.com'
+    });
+
+    if (error) {
+      console.error('Emergency admin creation failed:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Emergency admin created successfully');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error in createEmergencyAdmin:', error);
     return { success: false, error: error.message };
   }
 };
