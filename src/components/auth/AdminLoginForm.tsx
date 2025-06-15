@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Eye, EyeOff, Shield, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { forceAdminLogin } from '../../context/adminUtils';
+import { adminLogin } from '../../context/adminUtils';
 
 interface AdminLoginFormProps {
   isVisible: boolean;
@@ -31,8 +31,8 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
     setLoading(true);
     
     try {
-      console.log('Admin login attempt with force login');
-      const result = await forceAdminLogin();
+      console.log('Admin login form submit');
+      const result = await adminLogin();
       
       if (result.success) {
         toast.success('تم تسجيل دخول المشرف بنجاح');
@@ -44,7 +44,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
         toast.error(result.error || 'فشل في تسجيل دخول المشرف');
       }
     } catch (error: any) {
-      console.error('Admin login error:', error);
+      console.error('Admin login form error:', error);
       toast.error('حدث خطأ أثناء تسجيل الدخول');
     } finally {
       setLoading(false);
@@ -128,7 +128,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
         {/* Info note */}
         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
           <p className="text-xs text-blue-700 text-center">
-            سيتم إنشاء حساب المدير تلقائياً إذا لم يكن موجوداً
+            البيانات الافتراضية: zakariadrk00@gmail.com / admin123456
           </p>
         </div>
 

@@ -59,15 +59,17 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             }
             setLoading(false);
 
-            // Auto-create admin user after auth setup is complete
-            setTimeout(async () => {
-              try {
-                console.log('Auto-creating admin user...');
-                await createAdminUser();
-              } catch (adminError) {
-                console.error('Failed to auto-create admin:', adminError);
-              }
-            }, 1000);
+            // Try to create admin user in background (only once)
+            if (!session?.user) {
+              setTimeout(async () => {
+                try {
+                  console.log('Background admin user check...');
+                  await createAdminUser();
+                } catch (adminError) {
+                  console.error('Background admin creation failed:', adminError);
+                }
+              }, 2000);
+            }
 
           } catch (error) {
             console.error('Error getting initial session:', error);

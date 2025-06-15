@@ -3,7 +3,7 @@ import { supabase } from '../integrations/supabase/client';
 
 export const createAdminUser = async () => {
   try {
-    console.log('Checking/creating admin user...');
+    console.log('Creating/checking admin user...');
     
     // First, try to sign in to see if admin already exists
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -11,8 +11,12 @@ export const createAdminUser = async () => {
       password: 'admin123456'
     });
 
-    if (signInData.user) {
+    if (signInData.user && !signInError) {
       console.log('Admin user already exists and can login');
+      
+      // Sign out immediately after confirming login works
+      await supabase.auth.signOut();
+      
       return { success: true, user: signInData.user };
     }
 
@@ -34,15 +38,15 @@ export const createAdminUser = async () => {
 
       if (signupError) {
         if (signupError.message.includes('already registered')) {
-          console.log('Admin user already registered but needs confirmation');
-          return { success: false, needsConfirmation: true };
+          console.log('Admin user already registered');
+          return { success: true, needsConfirmation: true };
         }
         throw signupError;
       }
 
       if (signupData.user) {
         console.log('Admin user created successfully:', signupData.user.id);
-        return { success: true, user: signupData.user, needsConfirmation: true };
+        return { success: true, user: signupData.user, needsConfirmation: !signupData.session };
       }
     }
 
@@ -53,47 +57,50 @@ export const createAdminUser = async () => {
   }
 };
 
-// Force admin login - bypass normal authentication for admin user
-export const forceAdminLogin = async () => {
+// Direct admin login function
+export const adminLogin = async () => {
   try {
-    console.log('Attempting force admin login...');
+    console.log('Attempting admin login...');
     
-    // Try normal login first
     const { data, error } = await supabase.auth.signInWithPassword({
       email: 'zakariadrk00@gmail.com',
       password: 'admin123456'
     });
+
+    if (error) {
+      // If login fails due to credentials, try to create the admin user first
+      if (error.message.includes('Invalid login credentials')) {
+        console.log('Login failed, attempting to create admin user...');
+        const createResult = await createAdminUser();
+        
+        if (createResult.success && !createResult.needsConfirmation) {
+          // Try login again after creation
+          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+            email: 'zakariadrk00@gmail.com',
+            password: 'admin123456'
+          });
+
+          if (retryData.user) {
+            return { success: true, user: retryData.user };
+          }
+          
+          return { success: false, error: retryError?.message || 'Login failed after account creation' };
+        }
+        
+        return createResult;
+      }
+      
+      return { success: false, error: error.message };
+    }
 
     if (data.user) {
       console.log('Admin login successful');
       return { success: true, user: data.user };
     }
 
-    // If normal login fails, try to create and immediately sign in
-    if (error?.message.includes('Invalid login credentials')) {
-      console.log('Admin account not found, creating...');
-      
-      const createResult = await createAdminUser();
-      if (createResult.success) {
-        // Try login again after creation
-        const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-          email: 'zakariadrk00@gmail.com',
-          password: 'admin123456'
-        });
-
-        if (retryData.user) {
-          return { success: true, user: retryData.user };
-        }
-        
-        return { success: false, error: retryError?.message || 'Login failed after account creation' };
-      }
-      
-      return createResult;
-    }
-
-    return { success: false, error: error.message };
+    return { success: false, error: 'Login failed - no user returned' };
   } catch (error: any) {
-    console.error('Force admin login error:', error);
+    console.error('Admin login error:', error);
     return { success: false, error: error.message };
   }
 };
