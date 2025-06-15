@@ -21,16 +21,12 @@ export const AdminDashboardHeader: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-4">
-      <SidebarTrigger className="flex items-center justify-center w-8 h-8 p-0 hover:bg-emerald-100 rounded-md transition-colors">
-        <Menu className="w-4 h-4" />
-      </SidebarTrigger>
-      <div className="h-6 w-px bg-gray-200 mx-2" />
-      <div className="flex items-center min-w-0 flex-1">
-        <h1 className="text-lg font-semibold text-gray-900 truncate">
-          {getTabTitle()}
-        </h1>
-      </div>
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-sm px-4 w-full">
+      <SidebarTrigger className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0" />
+      <div className="h-6 w-px bg-gray-200 mx-2 flex-shrink-0" />
+      <h1 className="text-lg font-semibold text-gray-900 truncate">
+        {getTabTitle()}
+      </h1>
     </header>
   );
 };
