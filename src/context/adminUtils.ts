@@ -61,9 +61,10 @@ export const adminLogin = async () => {
     }
 
     return { success: false, error: 'Login failed - no user returned' };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Admin login error:', error);
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -100,7 +101,7 @@ const ensureAdminProfile = async (userId: string) => {
     } else {
       console.log('Admin profile ensured with security definer function');
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error ensuring admin profile:', error);
   }
 };
@@ -129,9 +130,10 @@ export const forceAdminAccess = async () => {
     await ensureAdminProfile(adminUser.id);
     
     return { success: true, user: adminUser };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Force admin access error:', error);
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -159,9 +161,10 @@ export const createAdminForCurrentUser = async () => {
 
     console.log('Admin profile created successfully');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in createAdminForCurrentUser:', error);
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -176,7 +179,7 @@ export const checkSystemHasAdmin = async () => {
     }
     
     return data === true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in checkSystemHasAdmin:', error);
     return false;
   }
@@ -206,8 +209,9 @@ export const createEmergencyAdmin = async () => {
 
     console.log('Emergency admin created successfully');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in createEmergencyAdmin:', error);
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return { success: false, error: errorMessage };
   }
 };

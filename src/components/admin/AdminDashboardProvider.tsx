@@ -1,4 +1,3 @@
-
 import React, { useState, ReactNode } from 'react';
 import { AdminDashboardContextType, AdminTab } from '../../types/admin';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
@@ -33,14 +32,7 @@ export const AdminDashboardProvider: React.FC<AdminDashboardProviderProps> = ({ 
     loading: dataLoading 
   } = useAdminData();
 
-  if (authLoading || dataLoading) {
-    return <AdminLoadingState />;
-  }
-
-  if (!isAdmin) {
-    return <AdminAccessDenied />;
-  }
-
+  // Always provide context, even when loading or access denied
   const contextValue: AdminDashboardContextType = {
     activeTab,
     setActiveTab,
@@ -53,6 +45,24 @@ export const AdminDashboardProvider: React.FC<AdminDashboardProviderProps> = ({ 
     loading: dataLoading,
     isAdmin
   };
+
+  // Show loading state but keep context available
+  if (authLoading || dataLoading) {
+    return (
+      <AdminDashboardContext.Provider value={contextValue}>
+        <AdminLoadingState />
+      </AdminDashboardContext.Provider>
+    );
+  }
+
+  // Show access denied but keep context available
+  if (!isAdmin) {
+    return (
+      <AdminDashboardContext.Provider value={contextValue}>
+        <AdminAccessDenied />
+      </AdminDashboardContext.Provider>
+    );
+  }
 
   return (
     <AdminDashboardContext.Provider value={contextValue}>
