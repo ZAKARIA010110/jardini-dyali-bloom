@@ -13,5 +13,5 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   loading: boolean;
   sendEmailVerification: (email: string) => Promise<void>;
-  createAdminUser: () => Promise<void>;
+  createAdminUser: () => Promise<{ success: boolean; user?: any; needsConfirmation?: boolean; error?: string }>;
 }
