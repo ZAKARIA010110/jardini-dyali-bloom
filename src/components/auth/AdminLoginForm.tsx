@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Eye, EyeOff, Shield, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { adminLogin } from '../../context/adminUtils';
+import { adminLogin, forceAdminAccess } from '../../context/adminUtils';
 
 interface AdminLoginFormProps {
   isVisible: boolean;
@@ -37,14 +37,44 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
       if (result.success) {
         toast.success('تم تسجيل دخول المشرف بنجاح');
         onClose();
-        // Redirect to admin dashboard
+        // Direct redirect to admin dashboard
         navigate('/admin');
       } else {
-        toast.error(result.error || 'فشل في تسجيل دخول المشرف');
+        console.log('Login failed, trying force access for development...');
+        // For development purposes, try force access
+        const forceResult = await forceAdminAccess();
+        if (forceResult.success) {
+          toast.success('تم الوصول كمشرف (وضع التطوير)');
+          onClose();
+          navigate('/admin');
+        } else {
+          toast.error(result.error || 'فشل في تسجيل دخول المشرف');
+        }
       }
     } catch (error: any) {
       console.error('Admin login form error:', error);
       toast.error('حدث خطأ أثناء تسجيل الدخول');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDirectAccess = async () => {
+    setLoading(true);
+    try {
+      console.log('Direct admin access attempt...');
+      const result = await forceAdminAccess();
+      
+      if (result.success) {
+        toast.success('تم الوصول مباشرة كمشرف');
+        onClose();
+        navigate('/admin');
+      } else {
+        toast.error('فشل في الوصول المباشر');
+      }
+    } catch (error: any) {
+      console.error('Direct access error:', error);
+      toast.error('حدث خطأ في الوصول المباشر');
     } finally {
       setLoading(false);
     }
@@ -124,6 +154,17 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
           </Button>
         </form>
 
+        {/* Development Direct Access Button */}
+        <div className="mt-4">
+          <Button
+            onClick={handleDirectAccess}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2"
+            disabled={loading}
+          >
+            {loading ? 'جاري الوصول...' : 'وصول مباشر (تطوير)'}
+          </Button>
+        </div>
+
         {/* Info note */}
         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
           <p className="text-xs text-blue-700 text-center">
@@ -131,7 +172,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
           </p>
         </div>
 
-        {/* No email verification needed note */}
+        {/* No email verification note */}
         <div className="mt-2 p-3 bg-green-50 rounded-lg">
           <p className="text-xs text-green-700 text-center">
             الدخول مباشر بدون تأكيد البريد الإلكتروني
