@@ -12,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
+  SidebarTrigger,
 } from '../ui/sidebar';
 import { 
   Users, 
@@ -92,14 +93,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   return (
     <Sidebar collapsible="icon" className="border-r border-gray-200 bg-white">
       <SidebarHeader className="p-4 border-b border-gray-200">
-        <div className="flex items-center space-x-3 rtl:space-x-reverse group-data-[collapsible=icon]:justify-center">
-          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
-            <Shield className="w-4 h-4 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 rtl:space-x-reverse group-data-[collapsible=icon]:justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
+              <Shield className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 group-data-[collapsible=icon]:hidden">
+              <h2 className="text-sm font-bold text-gray-900">Jardini Dyali</h2>
+              <p className="text-xs text-gray-500">لوحة الإدارة</p>
+            </div>
           </div>
-          <div className="flex-1 group-data-[collapsible=icon]:hidden">
-            <h2 className="text-sm font-bold text-gray-900">Jardini Dyali</h2>
-            <p className="text-xs text-gray-500">لوحة الإدارة</p>
-          </div>
+          <SidebarTrigger className="w-6 h-6 p-1 hover:bg-gray-100 rounded transition-colors group-data-[collapsible=icon]:hidden" />
         </div>
       </SidebarHeader>
 
