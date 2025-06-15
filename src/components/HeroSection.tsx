@@ -1,13 +1,15 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
 import { Sparkles, Leaf, Users, Award } from 'lucide-react';
+
 const HeroSection = () => {
-  const {
-    t
-  } = useLanguage();
-  return <section className="pt-20 pb-16 bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50 min-h-screen flex items-center relative overflow-hidden">
+  const { t } = useLanguage();
+
+  return (
+    <section className="pt-20 pb-16 bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50 min-h-screen flex items-center relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-32 w-80 h-80 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
@@ -38,7 +40,9 @@ const HeroSection = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8 animate-fade-in">
               <Link to="/gardeners">
-                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">طلب بستاني </Button>
+                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                  طلب بستاني
+                </Button>
               </Link>
               <Link to="/become-gardener">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
@@ -80,13 +84,17 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Enhanced Image */}
+          {/* Enhanced Image with uploaded gardeners photo */}
           <div className="relative">
             <div className="relative group">
               {/* Main image container */}
               <div className="aspect-square rounded-3xl bg-gradient-to-br from-green-400 via-emerald-400 to-green-600 p-8 shadow-2xl transform group-hover:scale-105 transition-all duration-500">
                 <div className="w-full h-full rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden">
-                  <img alt="Beautiful garden landscape" className="w-full h-full object-cover rounded-2xl transform group-hover:scale-110 transition-transform duration-700" src="https://chatgpt.com/s/m_684c3eb11f708191bf156f1a0b559175" />
+                  <img 
+                    alt="فريق البستانيين المحترفين - جارديني ديالي" 
+                    className="w-full h-full object-cover rounded-2xl transform group-hover:scale-110 transition-transform duration-700" 
+                    src="/lovable-uploads/f8dcc078-0f78-4334-95da-bd012d0c5551.png" 
+                  />
                 </div>
               </div>
               
@@ -114,6 +122,8 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default HeroSection;

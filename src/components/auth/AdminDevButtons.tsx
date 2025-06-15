@@ -23,8 +23,8 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
       console.log('Creating admin user...');
       
       // First check if admin already exists
-      const { data: existingUser } = await supabase.auth.admin.listUsers();
-      const adminExists = existingUser.users?.find(user => user.email === 'zakariadrk45@gmail.com');
+      const { data: userListData } = await supabase.auth.admin.listUsers();
+      const adminExists = userListData?.users?.find((user: any) => user.email === 'zakariadrk45@gmail.com');
       
       if (adminExists) {
         console.log('Admin user already exists, can login directly');
