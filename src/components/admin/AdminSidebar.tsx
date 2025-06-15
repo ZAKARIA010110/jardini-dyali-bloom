@@ -90,9 +90,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   ];
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg">
+    <Sidebar 
+      side="right" 
+      collapsible="icon" 
+      className="border-l border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg"
+    >
       <SidebarHeader className="p-4 border-b border-gray-100">
-        <div className="flex items-center space-x-3 rtl:space-x-reverse group-data-[collapsible=icon]:justify-center">
+        <div className="flex items-center space-x-3 space-x-reverse group-data-[collapsible=icon]:justify-center">
           <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
             <Shield className="w-4 h-4 text-white" />
           </div>
@@ -122,7 +126,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         : 'text-gray-600 hover:text-emerald-600'
                     }`}
                   >
-                    <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                    <div className="flex items-center space-x-3 space-x-reverse">
                       <item.icon className="w-4 h-4 shrink-0" />
                       <span className="font-medium group-data-[collapsible=icon]:hidden">{item.title}</span>
                     </div>
@@ -147,7 +151,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       <SidebarFooter className="p-3">
         <div className="bg-gray-50 rounded-lg p-3 group-data-[collapsible=icon]:p-2">
-          <div className="flex items-center space-x-2 rtl:space-x-reverse mb-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mb-0">
+          <div className="flex items-center space-x-2 space-x-reverse mb-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mb-0">
             <Avatar className="w-7 h-7">
               <AvatarFallback className="bg-emerald-100 text-emerald-700 text-xs font-medium">
                 ZA
@@ -164,7 +168,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             size="sm"
             className="w-full justify-center hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all duration-200 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0"
           >
-            <LogOut className="w-3 h-3 group-data-[collapsible=icon]:ml-0 ml-1" />
+            <LogOut className="w-3 h-3 group-data-[collapsible=icon]:mr-0 mr-1" />
             <span className="group-data-[collapsible=icon]:hidden text-xs">تسجيل الخروج</span>
           </Button>
         </div>
