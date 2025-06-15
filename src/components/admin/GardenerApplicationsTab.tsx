@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -45,24 +46,7 @@ const GardenerApplicationsTab: React.FC = () => {
     setConnectionError(false);
     
     try {
-      // Test connection first
-      console.log('Testing Supabase connection...');
-      const { data: healthCheck, error: healthError } = await supabase
-        .from('gardener_applications')
-        .select('count')
-        .limit(1);
-
-      console.log('Health check result:', { healthCheck, healthError });
-
-      if (healthError) {
-        console.error('Health check failed:', healthError);
-        if (healthError.message.includes('Failed to fetch') || healthError.message.includes('NetworkError')) {
-          throw new Error('مشكلة في الاتصال بالخادم. تحقق من اتصالك بالإنترنت.');
-        }
-        throw healthError;
-      }
-
-      console.log('Connection successful, fetching applications...');
+      console.log('Fetching applications directly...');
       const { data, error } = await supabase
         .from('gardener_applications')
         .select('*')
@@ -73,6 +57,12 @@ const GardenerApplicationsTab: React.FC = () => {
 
       if (error) {
         console.error('Supabase error:', error);
+        if (error.code === 'PGRST116') {
+          // No RLS policy allows this operation
+          toast.error('ليس لديك صلاحية لعرض الطلبات. تأكد من أنك مسجل دخول كمدير.');
+          setConnectionError(true);
+          return;
+        }
         throw error;
       }
       
@@ -85,6 +75,10 @@ const GardenerApplicationsTab: React.FC = () => {
       console.log('Typed applications:', typedApplications);
       setApplications(typedApplications);
       setConnectionError(false);
+      
+      if (typedApplications.length > 0) {
+        toast.success(`تم تحميل ${typedApplications.length} طلب بنجاح`);
+      }
     } catch (error: any) {
       console.error('Error fetching applications:', error);
       setConnectionError(true);
@@ -188,7 +182,7 @@ const GardenerApplicationsTab: React.FC = () => {
           <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
           <h3 className="text-xl font-bold text-gray-900 mb-2">مشكلة في الاتصال</h3>
           <p className="text-gray-600 mb-4">
-            لا يمكن الاتصال بقاعدة البيانات. تحقق من اتصالك بالإنترنت.
+            لا يمكن الاتصال بقاعدة البيانات أو ليس لديك صلاحية لعرض الطلبات.
           </p>
           <Button onClick={fetchApplications} className="bg-green-600 hover:bg-green-700">
             <RefreshCw className="w-4 h-4 ml-2" />
