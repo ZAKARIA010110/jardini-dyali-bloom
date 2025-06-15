@@ -47,7 +47,14 @@ const GardenerApplicationsTab: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      
+      // Type the data properly to match our interface
+      const typedApplications: GardenerApplication[] = (data || []).map(app => ({
+        ...app,
+        status: (app.status as 'pending' | 'approved' | 'rejected') || 'pending'
+      }));
+      
+      setApplications(typedApplications);
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast.error('خطأ في تحميل الطلبات');
