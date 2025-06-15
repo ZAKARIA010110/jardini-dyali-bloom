@@ -5,11 +5,14 @@ import { useAuth } from '../context/useAuth';
 import { supabase } from '../integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { isAdminEmail } from '../context/adminUtils';
-import { LogOut } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import { SidebarProvider, SidebarInset } from '../components/ui/sidebar';
+import AdminSidebar from '../components/admin/AdminSidebar';
 import AdminHeader from '../components/admin/AdminHeader';
 import AdminStatsGrid from '../components/admin/AdminStatsGrid';
 import AdminTabContent from '../components/admin/AdminTabContent';
+import HomeownersTab from '../components/admin/HomeownersTab';
+import AnalyticsTab from '../components/admin/AnalyticsTab';
+import SettingsTab from '../components/admin/SettingsTab';
 import AdminLoadingState from '../components/admin/AdminLoadingState';
 import AdminAccessDenied from '../components/admin/AdminAccessDenied';
 
@@ -44,11 +47,14 @@ const AdminDashboard = () => {
   const { t } = useLanguage();
   const { user, loading: authLoading, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'gardeners' | 'bookings' | 'chat'>('gardeners');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'homeowners' | 'gardeners' | 'bookings' | 'chat' | 'analytics' | 'settings'>('dashboard');
   const [gardeners, setGardeners] = useState<Gardener[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  // Mock homeowners count for demonstration
+  const homeownersCount = 25;
 
   useEffect(() => {
     // For development, allow direct access to admin dashboard with admin email
@@ -181,50 +187,85 @@ const AdminDashboard = () => {
     return <AdminAccessDenied />;
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
-      {/* Admin Header with Logout */}
-      <div className="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-            <div className="w-8 h-8 bg-[#4CAF50] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">ج</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">Jardini Dyali - Admin</span>
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <div className="space-y-8">
+            <AdminHeader 
+              gardenersCount={gardeners.length}
+              bookingsCount={bookings.length}
+            />
+            <AdminStatsGrid
+              gardenersCount={gardeners.length}
+              bookingsCount={bookings.length}
+              averageRating={averageRating}
+              confirmedBookings={confirmedBookings}
+            />
+            <AdminTabContent
+              activeTab={'gardeners'}
+              setActiveTab={() => setActiveTab('gardeners')}
+              gardeners={gardeners}
+              bookings={bookings}
+            />
           </div>
-          
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="flex items-center space-x-2 rtl:space-x-reverse hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>تسجيل الخروج</span>
-          </Button>
-        </div>
-      </div>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <AdminHeader 
-          gardenersCount={gardeners.length}
-          bookingsCount={bookings.length}
-        />
+        );
+      case 'homeowners':
+        return <HomeownersTab />;
+      case 'gardeners':
+        return (
+          <AdminTabContent
+            activeTab={'gardeners'}
+            setActiveTab={() => {}}
+            gardeners={gardeners}
+            bookings={bookings}
+          />
+        );
+      case 'bookings':
+        return (
+          <AdminTabContent
+            activeTab={'bookings'}
+            setActiveTab={() => {}}
+            gardeners={gardeners}
+            bookings={bookings}
+          />
+        );
+      case 'chat':
+        return (
+          <AdminTabContent
+            activeTab={'chat'}
+            setActiveTab={() => {}}
+            gardeners={gardeners}
+            bookings={bookings}
+          />
+        );
+      case 'analytics':
+        return <AnalyticsTab />;
+      case 'settings':
+        return <SettingsTab />;
+      default:
+        return null;
+    }
+  };
 
-        <AdminStatsGrid
-          gardenersCount={gardeners.length}
-          bookingsCount={bookings.length}
-          averageRating={averageRating}
-          confirmedBookings={confirmedBookings}
-        />
-
-        <AdminTabContent
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
+        <AdminSidebar
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          gardeners={gardeners}
-          bookings={bookings}
+          onTabChange={setActiveTab}
+          onLogout={handleLogout}
+          homeownersCount={homeownersCount}
+          gardenersCount={gardeners.length}
+          bookingsCount={bookings.length}
         />
+        <SidebarInset className="flex-1">
+          <div className="p-6 lg:p-8">
+            {renderTabContent()}
+          </div>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
