@@ -11,8 +11,15 @@ export const useAuthState = () => {
   const handleSignup = async (email: string, password: string, name: string, userType: 'homeowner' | 'gardener') => {
     try {
       setAuthLoading(true);
-      await signup(email, password, name, userType);
-      toast.success('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني للتأكيد');
+      const result = await signup(email, password, name, userType);
+      
+      if (result.emailConfirmationRequired) {
+        toast.success(result.message || 'تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني للتأكيد');
+      } else {
+        toast.success(result.message || 'تم إنشاء الحساب بنجاح!');
+      }
+      
+      return result;
     } catch (error: any) {
       toast.error(error.message || 'خطأ في إنشاء الحساب');
       throw error;

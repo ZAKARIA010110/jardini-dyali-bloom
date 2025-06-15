@@ -2,10 +2,10 @@
 import { supabase } from '../integrations/supabase/client';
 import { ensureAdminProfile, fetchUserProfile, createAuthUser } from './authUtils';
 import { getAuthErrorMessage, getSignupErrorMessage } from './authErrors';
-import { AuthUser } from './authTypes';
+import { AuthUser, SignupResult, EmailVerificationResult } from './authTypes';
 
 export const createLoginHandler = (setLoading: (loading: boolean) => void) => {
-  return async (email: string, password: string) => {
+  return async (email: string, password: string): Promise<void> => {
     setLoading(true);
     try {
       console.log('Attempting login for:', email);
@@ -40,7 +40,7 @@ export const createLoginHandler = (setLoading: (loading: boolean) => void) => {
 };
 
 export const createSignupHandler = (setLoading: (loading: boolean) => void) => {
-  return async (email: string, password: string, name: string, userType: 'homeowner' | 'gardener') => {
+  return async (email: string, password: string, name: string, userType: 'homeowner' | 'gardener'): Promise<SignupResult> => {
     setLoading(true);
     try {
       console.log('Attempting signup for:', email, 'as', userType);
@@ -85,6 +85,13 @@ export const createSignupHandler = (setLoading: (loading: boolean) => void) => {
         };
       }
 
+      // Fallback case
+      return {
+        success: true,
+        emailConfirmationRequired: true,
+        message: 'تم إنشاء الحساب بنجاح!'
+      };
+
     } catch (error: any) {
       console.error('Signup error:', error);
       throw new Error(error.message || 'خطأ في إنشاء الحساب');
@@ -95,7 +102,7 @@ export const createSignupHandler = (setLoading: (loading: boolean) => void) => {
 };
 
 export const createEmailVerificationHandler = () => {
-  return async (email: string) => {
+  return async (email: string): Promise<EmailVerificationResult> => {
     try {
       console.log('Attempting to resend verification email to:', email);
       
