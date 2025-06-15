@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -25,7 +24,7 @@ const SignupPage = () => {
   const [emailSent, setEmailSent] = useState(false);
   
   const { t } = useLanguage();
-  const { signup, loading } = useAuth();
+  const { signup, sendEmailVerification, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleUserTypeSelect = (type: 'homeowner' | 'gardener') => {
@@ -64,11 +63,17 @@ const SignupPage = () => {
 
     try {
       console.log('Starting signup process for:', formData.email);
-      await signup(formData.email, formData.password, formData.name, userType!);
+      const result = await signup(formData.email, formData.password, formData.name, userType!);
       
-      console.log('Signup successful, proceeding to verification step');
-      toast.success('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني للتأكيد');
-      setStep(3);
+      if (result?.emailConfirmationRequired) {
+        console.log('Email confirmation required, proceeding to verification step');
+        toast.success(result.message || 'تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني للتأكيد');
+        setStep(3);
+      } else {
+        console.log('Account created and confirmed, redirecting to login');
+        toast.success(result?.message || 'تم إنشاء الحساب بنجاح!');
+        navigate('/login');
+      }
       
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -97,15 +102,18 @@ const SignupPage = () => {
 
     try {
       console.log('Resending verification email to:', formData.email);
-      // For now, just show a success message since email verification might not be fully configured
-      toast.success('إذا كان البريد الإلكتروني صحيحاً، ستصلك رسالة التأكيد قريباً');
-      setEmailSent(true);
+      const result = await sendEmailVerification(formData.email);
       
-      // Reset the flag after 60 seconds
-      setTimeout(() => setEmailSent(false), 60000);
+      if (result?.success) {
+        toast.success(result.message || 'تم إرسال رسالة التأكيد بنجاح');
+        setEmailSent(true);
+        
+        // Reset the flag after 60 seconds
+        setTimeout(() => setEmailSent(false), 60000);
+      }
     } catch (error: any) {
       console.error('Resend email error:', error);
-      toast.error('حدث خطأ. يرجى المحاولة لاحقاً أو تسجيل الدخول مباشرة');
+      toast.error('حدث خطأ في إرسال البريد. يرجى المحاولة لاحقاً');
     }
   };
 
@@ -364,16 +372,16 @@ const SignupPage = () => {
             <div className="flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8 text-[#4CAF50] mr-2" />
               <h2 className="text-2xl font-bold text-gray-900">
-                تم إنشاء الحساب بنجاح!
+                تحقق من بريدك الإلكتروني
               </h2>
             </div>
             
             <p className="text-gray-600 mb-4">
-              تم إنشاء حسابك بنجاح باستخدام البريد الإلكتروني: <strong>{formData.email}</strong>
+              تم إرسال رسالة تأكيد إلى: <strong>{formData.email}</strong>
             </p>
             
             <p className="text-gray-600 mb-6">
-              يمكنك الآن تسجيل الدخول واستخدام التطبيق. إذا كان لديك مشاكل، تحقق من بريدك الإلكتروني للتأكيد.
+              يرجى فحص صندوق الوارد أو مجلد الرسائل غير المرغوب فيها والنقر على رابط التأكيد لتفعيل حسابك.
             </p>
 
             <div className="space-y-4">
@@ -385,13 +393,13 @@ const SignupPage = () => {
               >
                 {emailSent 
                   ? 'تم الإرسال - انتظر دقيقة'
-                  : 'طلب رسالة تأكيد (اختياري)'
+                  : 'إعادة إرسال رسالة التأكيد'
                 }
               </Button>
               
               <Link to="/login">
                 <Button className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3">
-                  تسجيل الدخول الآن
+                  العودة لصفحة تسجيل الدخول
                 </Button>
               </Link>
             </div>
@@ -399,8 +407,8 @@ const SignupPage = () => {
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  <strong>ملاحظة:</strong> تم إنشاء حسابك بنجاح. يمكنك تسجيل الدخول مباشرة. 
-                  رسالة التأكيد بالبريد الإلكتروني اختيارية.
+                  <strong>ملاحظة:</strong> بعد النقر على رابط التأكيد في البريد الإلكتروني، 
+                  ستتمكن من تسجيل الدخول إلى حسابك.
                 </p>
               </div>
             </div>

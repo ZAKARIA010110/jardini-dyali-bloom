@@ -68,11 +68,21 @@ export const createSignupHandler = (setLoading: (loading: boolean) => void) => {
 
       console.log('Signup successful:', data);
 
-      // If user is already confirmed, they can proceed immediately
-      if (data.user && data.user.email_confirmed_at) {
+      // Check if email confirmation is required
+      if (data.user && !data.user.email_confirmed_at) {
+        console.log('Email confirmation required');
+        return { 
+          success: true, 
+          emailConfirmationRequired: true,
+          message: 'تم إنشاء الحساب بنجاح! تم إرسال رسالة تأكيد إلى بريدك الإلكتروني'
+        };
+      } else if (data.user && data.user.email_confirmed_at) {
         console.log('User email already confirmed, can proceed');
-      } else {
-        console.log('User needs email confirmation');
+        return { 
+          success: true, 
+          emailConfirmationRequired: false,
+          message: 'تم إنشاء الحساب وتأكيده بنجاح!'
+        };
       }
 
     } catch (error: any) {
@@ -106,6 +116,7 @@ export const createEmailVerificationHandler = () => {
       }
       
       console.log('Verification email sent successfully');
+      return { success: true, message: 'تم إرسال رسالة التأكيد بنجاح' };
     } catch (error: any) {
       console.error('Email verification error:', error);
       throw error;
