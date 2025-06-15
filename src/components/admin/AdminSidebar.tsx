@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback } from '../ui/avatar';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface AdminSidebarProps {
   activeTab: 'dashboard' | 'homeowners' | 'gardeners' | 'bookings' | 'chat' | 'analytics' | 'settings';
@@ -44,46 +45,48 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   gardenersCount,
   bookingsCount
 }) => {
+  const { language } = useLanguage();
+
   const menuItems = [
     {
       id: 'dashboard' as const,
-      title: 'لوحة التحكم',
+      title: language === 'ar' ? 'لوحة التحكم' : 'Tableau de bord',
       icon: Home,
       count: null
     },
     {
       id: 'homeowners' as const,
-      title: 'أصحاب المنازل',
+      title: language === 'ar' ? 'أصحاب المنازل' : 'Propriétaires',
       icon: Users,
       count: homeownersCount
     },
     {
       id: 'gardeners' as const,
-      title: 'البستانيون',
+      title: language === 'ar' ? 'البستانيون' : 'Jardiniers',
       icon: UserCheck,
       count: gardenersCount
     },
     {
       id: 'bookings' as const,
-      title: 'الحجوزات',
+      title: language === 'ar' ? 'الحجوزات' : 'Réservations',
       icon: Calendar,
       count: bookingsCount
     },
     {
       id: 'chat' as const,
-      title: 'المحادثات',
+      title: language === 'ar' ? 'المحادثات' : 'Messages',
       icon: MessageSquare,
       count: null
     },
     {
       id: 'analytics' as const,
-      title: 'التحليلات',
+      title: language === 'ar' ? 'التحليلات' : 'Analyses',
       icon: BarChart3,
       count: null
     },
     {
       id: 'settings' as const,
-      title: 'الإعدادات',
+      title: language === 'ar' ? 'الإعدادات' : 'Paramètres',
       icon: Settings,
       count: null
     }
@@ -96,13 +99,15 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       className="border-l border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg"
     >
       <SidebarHeader className="p-4 border-b border-gray-100">
-        <div className="flex items-center space-x-3 space-x-reverse group-data-[collapsible=icon]:justify-center">
+        <div className={`flex items-center space-x-3 group-data-[collapsible=icon]:justify-center ${language === 'ar' ? 'space-x-reverse' : ''}`}>
           <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
             <Shield className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 group-data-[collapsible=icon]:hidden">
             <h2 className="text-sm font-bold text-gray-900">Jardini Dyali</h2>
-            <p className="text-xs text-gray-500">لوحة الإدارة</p>
+            <p className="text-xs text-gray-500">
+              {language === 'ar' ? 'لوحة الإدارة' : 'Panneau d\'administration'}
+            </p>
           </div>
         </div>
       </SidebarHeader>
@@ -110,7 +115,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       <SidebarContent className="px-2 py-4">
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 group-data-[collapsible=icon]:hidden">
-            الإدارة الرئيسية
+            {language === 'ar' ? 'الإدارة الرئيسية' : 'Administration principale'}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -124,9 +129,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                       activeTab === item.id
                         ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm'
                         : 'text-gray-600 hover:text-emerald-600'
-                    }`}
+                    } ${language === 'ar' ? 'flex-row-reverse' : ''}`}
                   >
-                    <div className="flex items-center space-x-3 space-x-reverse">
+                    <div className={`flex items-center space-x-3 ${language === 'ar' ? 'space-x-reverse' : ''}`}>
                       <item.icon className="w-4 h-4 shrink-0" />
                       <span className="font-medium group-data-[collapsible=icon]:hidden">{item.title}</span>
                     </div>
@@ -151,7 +156,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       <SidebarFooter className="p-3">
         <div className="bg-gray-50 rounded-lg p-3 group-data-[collapsible=icon]:p-2">
-          <div className="flex items-center space-x-2 space-x-reverse mb-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mb-0">
+          <div className={`flex items-center space-x-2 mb-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mb-0 ${language === 'ar' ? 'space-x-reverse' : ''}`}>
             <Avatar className="w-7 h-7">
               <AvatarFallback className="bg-emerald-100 text-emerald-700 text-xs font-medium">
                 ZA
@@ -159,7 +164,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             </Avatar>
             <div className="flex-1 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-medium text-gray-900">Zakaria Admin</p>
-              <p className="text-xs text-gray-500">مدير النظام</p>
+              <p className="text-xs text-gray-500">
+                {language === 'ar' ? 'مدير النظام' : 'Administrateur système'}
+              </p>
             </div>
           </div>
           <Button
@@ -168,8 +175,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             size="sm"
             className="w-full justify-center hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all duration-200 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0"
           >
-            <LogOut className="w-3 h-3 group-data-[collapsible=icon]:mr-0 mr-1" />
-            <span className="group-data-[collapsible=icon]:hidden text-xs">تسجيل الخروج</span>
+            <LogOut className={`w-3 h-3 group-data-[collapsible=icon]:mr-0 ${language === 'ar' ? 'ml-1' : 'mr-1'}`} />
+            <span className="group-data-[collapsible=icon]:hidden text-xs">
+              {language === 'ar' ? 'تسجيل الخروج' : 'Déconnexion'}
+            </span>
           </Button>
         </div>
       </SidebarFooter>

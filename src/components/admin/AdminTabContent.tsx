@@ -4,6 +4,7 @@ import { Users, Calendar, MessageSquare } from 'lucide-react';
 import GardenersTab from './GardenersTab';
 import BookingsTab from './BookingsTab';
 import ChatTab from './ChatTab';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Gardener {
   id: string;
@@ -45,42 +46,53 @@ const AdminTabContent: React.FC<AdminTabContentProps> = ({
   gardeners,
   bookings
 }) => {
+  const { language } = useLanguage();
+
+  const tabs = [
+    {
+      id: 'gardeners' as const,
+      label: language === 'ar' ? 'البستانيون' : 'Jardiniers',
+      icon: Users,
+      count: gardeners.length,
+      bgColor: 'emerald'
+    },
+    {
+      id: 'bookings' as const,
+      label: language === 'ar' ? 'الحجوزات' : 'Réservations',
+      icon: Calendar,
+      count: bookings.length,
+      bgColor: 'blue'
+    },
+    {
+      id: 'chat' as const,
+      label: language === 'ar' ? 'المحادثات' : 'Messages',
+      icon: MessageSquare,
+      count: null,
+      bgColor: 'purple'
+    }
+  ];
+
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
-      <div className="flex flex-wrap border-b border-gray-200">
-        <button
-          onClick={() => setActiveTab('gardeners')}
-          className={`flex items-center px-6 py-4 font-medium text-sm transition-colors ${
-            activeTab === 'gardeners'
-              ? 'border-b-2 border-emerald-500 text-emerald-600 bg-emerald-50'
-              : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
-          }`}
-        >
-          <Users className="w-5 h-5 ml-2" />
-          البستانيون ({gardeners.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('bookings')}
-          className={`flex items-center px-6 py-4 font-medium text-sm transition-colors ${
-            activeTab === 'bookings'
-              ? 'border-b-2 border-blue-500 text-blue-600 bg-blue-50'
-              : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
-          }`}
-        >
-          <Calendar className="w-5 h-5 ml-2" />
-          الحجوزات ({bookings.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('chat')}
-          className={`flex items-center px-6 py-4 font-medium text-sm transition-colors ${
-            activeTab === 'chat'
-              ? 'border-b-2 border-purple-500 text-purple-600 bg-purple-50'
-              : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
-          }`}
-        >
-          <MessageSquare className="w-5 h-5 ml-2" />
-          المحادثات
-        </button>
+      <div className={`flex flex-wrap border-b border-gray-200 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center px-6 py-4 font-medium text-sm transition-colors ${language === 'ar' ? 'flex-row-reverse' : ''} ${
+              activeTab === tab.id
+                ? `border-b-2 border-${tab.bgColor}-500 text-${tab.bgColor}-600 bg-${tab.bgColor}-50`
+                : `text-gray-600 hover:text-${tab.bgColor}-600 hover:bg-gray-50`
+            }`}
+          >
+            <div className={`flex items-center space-x-3 ${language === 'ar' ? 'space-x-reverse' : ''}`}>
+              <tab.icon className="w-5 h-5 shrink-0" />
+              <span className="font-medium">
+                {tab.label} {tab.count !== null && `(${tab.count})`}
+              </span>
+            </div>
+          </button>
+        ))}
       </div>
 
       <div className="p-6">

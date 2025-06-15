@@ -5,6 +5,7 @@ import { AdminDashboardProvider, useAdminDashboard } from '../components/admin/A
 import AdminSidebar from '../components/admin/AdminSidebar';
 import { AdminDashboardHeader } from '../components/admin/AdminDashboardHeader';
 import { AdminTabRenderer } from '../components/admin/AdminTabRenderer';
+import { useLanguage } from '../context/LanguageContext';
 
 const AdminDashboardContent: React.FC = () => {
   const { 
@@ -15,9 +16,11 @@ const AdminDashboardContent: React.FC = () => {
     gardeners, 
     bookings 
   } = useAdminDashboard();
+  
+  const { language } = useLanguage();
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
+    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
       <SidebarProvider defaultOpen={false}>
         <div className="flex min-h-screen w-full">
           {/* Main Content Area */}
