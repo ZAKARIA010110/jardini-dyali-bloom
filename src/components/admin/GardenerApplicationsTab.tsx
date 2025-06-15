@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -40,13 +39,20 @@ const GardenerApplicationsTab: React.FC = () => {
   }, []);
 
   const fetchApplications = async () => {
+    console.log('Fetching gardener applications...');
     try {
       const { data, error } = await supabase
         .from('gardener_applications')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Gardener applications data:', data);
+      console.log('Gardener applications error:', error);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
       // Type the data properly to match our interface
       const typedApplications: GardenerApplication[] = (data || []).map(app => ({
@@ -54,10 +60,11 @@ const GardenerApplicationsTab: React.FC = () => {
         status: (app.status as 'pending' | 'approved' | 'rejected') || 'pending'
       }));
       
+      console.log('Typed applications:', typedApplications);
       setApplications(typedApplications);
     } catch (error) {
       console.error('Error fetching applications:', error);
-      toast.error('خطأ في تحميل الطلبات');
+      toast.error('خطأ في تحميل الطلبات: ' + (error as any)?.message);
     } finally {
       setLoading(false);
     }
@@ -142,12 +149,20 @@ const GardenerApplicationsTab: React.FC = () => {
     );
   }
 
+  console.log('Rendering applications count:', applications.length);
+  console.log('Current applications:', applications);
+
   return (
     <div className="bg-white rounded-lg shadow mb-8">
       <div className="p-6 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 sm:mb-0">طلبات البستانيين</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4 sm:mb-0">
+            طلبات البستانيين ({applications.length})
+          </h2>
           <div className="flex items-center space-x-4 rtl:space-x-reverse">
+            <Button onClick={fetchApplications} variant="outline" size="sm">
+              تحديث
+            </Button>
             <Input
               type="text"
               placeholder="البحث في الطلبات..."
@@ -311,9 +326,12 @@ const GardenerApplicationsTab: React.FC = () => {
           </TableBody>
         </Table>
 
-        {filteredApplications.length === 0 && (
+        {filteredApplications.length === 0 && !loading && (
           <div className="text-center py-8 text-gray-500">
-            لا توجد طلبات بستانيين متاحة
+            {applications.length === 0 ? 
+              'لا توجد طلبات بستانيين حتى الآن' : 
+              'لا توجد نتائج تطابق البحث'
+            }
           </div>
         )}
       </div>
