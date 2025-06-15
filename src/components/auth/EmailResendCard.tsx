@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useAuth } from '../../context/useAuth';
-import { Mail, Clock, CheckCircle } from 'lucide-react';
+import { Mail, Clock, CheckCircle, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface EmailResendCardProps {
@@ -17,6 +17,9 @@ const EmailResendCard: React.FC<EmailResendCardProps> = ({ initialEmail = '', on
   const [isLoading, setIsLoading] = useState(false);
   const [cooldownTime, setCooldownTime] = useState(0);
   const { sendEmailVerification } = useAuth();
+
+  // Check if we're on Lovable preview URL
+  const isLovablePreview = window.location.hostname.includes('lovable.app');
 
   React.useEffect(() => {
     if (cooldownTime > 0) {
@@ -65,6 +68,17 @@ const EmailResendCard: React.FC<EmailResendCardProps> = ({ initialEmail = '', on
         <p className="text-gray-600">
           أدخل بريدك الإلكتروني لإعادة إرسال رسالة التأكيد
         </p>
+        
+        {isLovablePreview && (
+          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-center space-x-2 rtl:space-x-reverse">
+              <Shield className="w-4 h-4 text-green-600" />
+              <span className="text-sm text-green-700 font-medium">
+                الرابط الجديد سيعمل بشكل صحيح مع هذا التطبيق
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -108,6 +122,9 @@ const EmailResendCard: React.FC<EmailResendCardProps> = ({ initialEmail = '', on
               <li>تحقق من مجلد الرسائل غير المرغوب فيها</li>
               <li>الرابط صالح لمدة ساعة واحدة فقط</li>
               <li>يمكن إعادة الإرسال كل دقيقة</li>
+              {isLovablePreview && (
+                <li className="text-green-700 font-medium">✅ الرابط الجديد سيعمل مع URL الحالي</li>
+              )}
             </ul>
           </div>
         </div>

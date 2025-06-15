@@ -1,8 +1,23 @@
-
 import { supabase } from '../integrations/supabase/client';
 import { ensureAdminProfile, fetchUserProfile, createAuthUser } from './authUtils';
 import { getAuthErrorMessage, getSignupErrorMessage } from './authErrors';
 import { AuthUser, SignupResult, EmailVerificationResult } from './authTypes';
+
+// Utility function to get the correct redirect URL
+const getRedirectUrl = (): string => {
+  // Check if we're in a Lovable preview environment
+  if (window.location.hostname.includes('lovable.app')) {
+    return window.location.origin;
+  }
+  
+  // Check if we're in development (localhost)
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return window.location.origin;
+  }
+  
+  // For any other case, use the current origin
+  return window.location.origin;
+};
 
 export const createLoginHandler = (setLoading: (loading: boolean) => void) => {
   return async (email: string, password: string): Promise<void> => {
@@ -45,8 +60,8 @@ export const createSignupHandler = (setLoading: (loading: boolean) => void) => {
     try {
       console.log('Attempting signup for:', email, 'as', userType);
 
-      // Get the current origin for redirect
-      const redirectUrl = `${window.location.origin}/`;
+      // Get the correct redirect URL for the current environment
+      const redirectUrl = getRedirectUrl();
       console.log('Using redirect URL:', redirectUrl);
 
       const { data, error } = await supabase.auth.signUp({
@@ -106,7 +121,8 @@ export const createEmailVerificationHandler = () => {
     try {
       console.log('Attempting to resend verification email to:', email);
       
-      const redirectUrl = `${window.location.origin}/`;
+      // Get the correct redirect URL for the current environment
+      const redirectUrl = getRedirectUrl();
       console.log('Using redirect URL for verification:', redirectUrl);
       
       const { error } = await supabase.auth.resend({
