@@ -5,8 +5,8 @@ import { useAuth } from '../context/useAuth';
 import { supabase } from '../integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { isAdminEmail } from '../context/adminUtils';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { LogOut } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import AdminHeader from '../components/admin/AdminHeader';
 import AdminStatsGrid from '../components/admin/AdminStatsGrid';
 import AdminTabContent from '../components/admin/AdminTabContent';
@@ -42,7 +42,7 @@ interface Booking {
 
 const AdminDashboard = () => {
   const { t } = useLanguage();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'gardeners' | 'bookings' | 'chat'>('gardeners');
   const [gardeners, setGardeners] = useState<Gardener[]>([]);
@@ -156,6 +156,17 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force navigation even if logout fails
+      navigate('/');
+    }
+  };
+
   const averageRating = gardeners.length > 0 
     ? (gardeners.reduce((sum, g) => sum + g.rating, 0) / gardeners.length).toFixed(1)
     : '0';
@@ -172,32 +183,47 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
-      <Navbar />
-      
-      <div className="pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <AdminHeader 
-            gardenersCount={gardeners.length}
-            bookingsCount={bookings.length}
-          />
-
-          <AdminStatsGrid
-            gardenersCount={gardeners.length}
-            bookingsCount={bookings.length}
-            averageRating={averageRating}
-            confirmedBookings={confirmedBookings}
-          />
-
-          <AdminTabContent
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            gardeners={gardeners}
-            bookings={bookings}
-          />
+      {/* Admin Header with Logout */}
+      <div className="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+            <div className="w-8 h-8 bg-[#4CAF50] rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">ج</span>
+            </div>
+            <span className="text-xl font-bold text-gray-900">Jardini Dyali - Admin</span>
+          </div>
+          
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="flex items-center space-x-2 rtl:space-x-reverse hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>تسجيل الخروج</span>
+          </Button>
         </div>
       </div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminHeader 
+          gardenersCount={gardeners.length}
+          bookingsCount={bookings.length}
+        />
 
-      <Footer />
+        <AdminStatsGrid
+          gardenersCount={gardeners.length}
+          bookingsCount={bookings.length}
+          averageRating={averageRating}
+          confirmedBookings={confirmedBookings}
+        />
+
+        <AdminTabContent
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          gardeners={gardeners}
+          bookings={bookings}
+        />
+      </div>
     </div>
   );
 };
