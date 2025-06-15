@@ -27,9 +27,9 @@ const AdminDashboardContent: React.FC = () => {
           gardenersCount={gardeners.length}
           bookingsCount={bookings.length}
         />
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 w-full">
           <AdminDashboardHeader />
-          <div className="flex-1 p-6 lg:p-8 overflow-auto">
+          <div className="flex-1 p-4 lg:p-6 overflow-auto w-full">
             <AdminTabRenderer />
           </div>
         </SidebarInset>
