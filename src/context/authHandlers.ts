@@ -45,11 +45,15 @@ export const createSignupHandler = (setLoading: (loading: boolean) => void) => {
     try {
       console.log('Attempting signup for:', email, 'as', userType);
 
+      // Get the current origin for redirect
+      const redirectUrl = `${window.location.origin}/`;
+      console.log('Using redirect URL:', redirectUrl);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: redirectUrl,
           data: {
             name,
             user_type: userType
@@ -64,6 +68,13 @@ export const createSignupHandler = (setLoading: (loading: boolean) => void) => {
 
       console.log('Signup successful:', data);
 
+      // If user is already confirmed, they can proceed immediately
+      if (data.user && data.user.email_confirmed_at) {
+        console.log('User email already confirmed, can proceed');
+      } else {
+        console.log('User needs email confirmation');
+      }
+
     } catch (error: any) {
       console.error('Signup error:', error);
       throw new Error(error.message || 'خطأ في إنشاء الحساب');
@@ -76,11 +87,16 @@ export const createSignupHandler = (setLoading: (loading: boolean) => void) => {
 export const createEmailVerificationHandler = () => {
   return async (email: string) => {
     try {
+      console.log('Attempting to resend verification email to:', email);
+      
+      const redirectUrl = `${window.location.origin}/`;
+      console.log('Using redirect URL for verification:', redirectUrl);
+      
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: redirectUrl
         }
       });
       
@@ -88,6 +104,8 @@ export const createEmailVerificationHandler = () => {
         console.error('Email verification error:', error);
         throw new Error(getAuthErrorMessage(error));
       }
+      
+      console.log('Verification email sent successfully');
     } catch (error: any) {
       console.error('Email verification error:', error);
       throw error;
