@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Button } from '../ui/button';
-import { Settings, Database } from 'lucide-react';
+import { Settings, Database, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../../integrations/supabase/client';
+import { createAdminForCurrentUser } from '../../context/adminUtils';
 
 interface AdminDevButtonsProps {
   loading: boolean;
@@ -53,6 +55,25 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
     } catch (error: any) {
       console.error('Admin creation error:', error);
       toast.error('فشل في إنشاء حساب المدير: ' + error.message);
+    }
+  };
+
+  const handleMakeCurrentUserAdmin = async () => {
+    try {
+      console.log('Making current user admin...');
+      
+      const result = await createAdminForCurrentUser();
+      
+      if (result.success) {
+        toast.success('تم تحويل المستخدم الحالي إلى مدير بنجاح!');
+        // Reload the page to refresh admin status
+        window.location.reload();
+      } else {
+        toast.error('فشل في تحويل المستخدم إلى مدير: ' + result.error);
+      }
+    } catch (error: any) {
+      console.error('Make admin error:', error);
+      toast.error('حدث خطأ: ' + error.message);
     }
   };
 
@@ -204,6 +225,18 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
       >
         <Settings className="w-4 h-4 ml-2" />
         إعداد حساب المدير
+      </Button>
+
+      {/* Make Current User Admin Button */}
+      <Button
+        type="button"
+        onClick={handleMakeCurrentUserAdmin}
+        variant="outline"
+        className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+        disabled={loading || isRetrying}
+      >
+        <Shield className="w-4 h-4 ml-2" />
+        جعل المستخدم الحالي مدير
       </Button>
 
       {/* Reset Data Button - For development */}

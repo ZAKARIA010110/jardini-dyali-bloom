@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '../../context/useAuth';
 import { supabase } from '../../integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { isAdminEmail } from '../../context/adminUtils';
+import { isAdminEmail, createAdminForCurrentUser } from '../../context/adminUtils';
 import AdminLoadingState from './AdminLoadingState';
 import AdminAccessDenied from './AdminAccessDenied';
 
@@ -99,7 +98,16 @@ export const AdminDashboardProvider: React.FC<AdminDashboardProviderProps> = ({ 
       console.log('Checking admin status for user:', user.email);
       
       if (isAdminEmail(user.email || '')) {
-        console.log('Admin email detected, granting access');
+        console.log('Admin email detected, ensuring admin profile exists');
+        
+        // Try to create admin profile for this user
+        const result = await createAdminForCurrentUser();
+        if (result.success) {
+          console.log('Admin profile created/updated successfully');
+        } else {
+          console.log('Failed to create admin profile:', result.error);
+        }
+        
         setIsAdmin(true);
         fetchData();
         return;
