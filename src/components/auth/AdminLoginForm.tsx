@@ -36,8 +36,9 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isVisible, onClose }) =
       
       if (result.success) {
         toast.success('تم تسجيل دخول المشرف بنجاح');
-        navigate('/admin');
         onClose();
+        // Redirect to admin dashboard
+        navigate('/admin');
       } else if (result.needsConfirmation) {
         toast.info('تم إنشاء حساب المدير. يرجى تأكيد البريد الإلكتروني أولاً، ثم حاول مرة أخرى');
       } else {

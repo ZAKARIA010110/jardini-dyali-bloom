@@ -14,8 +14,8 @@ export const createAdminUser = async () => {
     if (signInData.user && !signInError) {
       console.log('Admin user already exists and can login');
       
-      // Sign out immediately after confirming login works
-      await supabase.auth.signOut();
+      // Ensure admin profile exists with correct role
+      await ensureAdminProfile(signInData.user.id);
       
       return { success: true, user: signInData.user };
     }
@@ -46,6 +46,10 @@ export const createAdminUser = async () => {
 
       if (signupData.user) {
         console.log('Admin user created successfully:', signupData.user.id);
+        
+        // Create admin profile immediately
+        await ensureAdminProfile(signupData.user.id);
+        
         return { success: true, user: signupData.user, needsConfirmation: !signupData.session };
       }
     }
@@ -54,6 +58,29 @@ export const createAdminUser = async () => {
   } catch (error: any) {
     console.error('Admin creation/login error:', error);
     return { success: false, error: error.message };
+  }
+};
+
+// Ensure admin profile exists with correct role
+const ensureAdminProfile = async (userId: string) => {
+  try {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        name: 'Zakaria Admin',
+        user_type: 'admin',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    
+    if (profileError) {
+      console.error('Admin profile upsert error:', profileError);
+    } else {
+      console.log('Admin profile ensured with admin role');
+    }
+  } catch (error) {
+    console.error('Error ensuring admin profile:', error);
   }
 };
 
@@ -81,6 +108,8 @@ export const adminLogin = async () => {
           });
 
           if (retryData.user) {
+            // Ensure admin profile exists
+            await ensureAdminProfile(retryData.user.id);
             return { success: true, user: retryData.user };
           }
           
@@ -95,6 +124,8 @@ export const adminLogin = async () => {
 
     if (data.user) {
       console.log('Admin login successful');
+      // Ensure admin profile exists with correct role
+      await ensureAdminProfile(data.user.id);
       return { success: true, user: data.user };
     }
 

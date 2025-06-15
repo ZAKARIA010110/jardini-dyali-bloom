@@ -63,13 +63,17 @@ const AdminDashboard = () => {
     if (!user) return;
     
     try {
+      console.log('Checking admin status for user:', user.email);
+      
       // Check if this is the admin email
       if (user.email === 'zakariadrk00@gmail.com') {
+        console.log('Admin email detected, granting access');
         setIsAdmin(true);
         fetchData();
         return;
       }
 
+      // Also check database for admin role
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('user_type')
@@ -78,11 +82,20 @@ const AdminDashboard = () => {
 
       if (error) {
         console.error('Error checking admin status:', error);
+        // If error fetching profile but this is admin email, still grant access
+        if (user.email === 'zakariadrk00@gmail.com') {
+          setIsAdmin(true);
+          fetchData();
+          return;
+        }
         navigate('/login');
         return;
       }
 
+      console.log('User profile:', profile);
+
       if (profile?.user_type !== 'admin') {
+        console.log('User is not admin, redirecting to home');
         navigate('/');
         return;
       }
@@ -90,8 +103,14 @@ const AdminDashboard = () => {
       setIsAdmin(true);
       fetchData();
     } catch (error) {
-      console.error('Error:', error);
-      navigate('/login');
+      console.error('Error in checkAdminStatus:', error);
+      // If this is admin email, grant access even on error
+      if (user?.email === 'zakariadrk00@gmail.com') {
+        setIsAdmin(true);
+        fetchData();
+      } else {
+        navigate('/login');
+      }
     }
   };
 
