@@ -1,181 +1,121 @@
 import { supabase } from '../integrations/supabase/client';
-import { ensureAdminProfile, fetchUserProfile, createAuthUser } from './authUtils';
-import { getAuthErrorMessage, getSignupErrorMessage } from './authErrors';
-import { AuthUser, SignupResult, EmailVerificationResult } from './authTypes';
+import { handleAuthError } from './authErrors';
+import { SignupData, LoginData } from './authTypes';
 
-// Utility function to get the correct redirect URL
-const getRedirectUrl = (): string => {
-  // Check if we're in a Lovable preview environment
-  if (window.location.hostname.includes('lovable.app')) {
-    return window.location.origin;
-  }
-  
-  // Check if we're in development (localhost)
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return window.location.origin;
-  }
-  
-  // For any other case, use the current origin
-  return window.location.origin;
-};
+// Handler function for user signup
+export const handleSignup = async (data: SignupData) => {
+  try {
+    const { email, password, name } = data;
 
-export const createLoginHandler = (setLoading: (loading: boolean) => void) => {
-  return async (email: string, password: string): Promise<void> => {
-    setLoading(true);
-    try {
-      console.log('Attempting login for:', email);
+    // Sign up the user with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: {
+          name: name,
+        },
+      },
+    });
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error('Login error:', error);
-        throw new Error(getAuthErrorMessage(error));
-      }
-
-      console.log('Login successful for:', data.user?.email);
-
-      // For admin user, ensure profile exists after login
-      if (email === 'zakariadrk00@gmail.com' && data.user) {
-        try {
-          await ensureAdminProfile(data.user.id);
-        } catch (profileError) {
-          console.error('Profile update failed:', profileError);
-        }
-      }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      throw new Error(error.message || 'خطأ في تسجيل الدخول');
-    } finally {
-      setLoading(false);
+    if (authError) {
+      return handleAuthError(authError, 'Signup failed');
     }
-  };
-};
 
-export const createSignupHandler = (setLoading: (loading: boolean) => void) => {
-  return async (email: string, password: string, name: string, userType: 'homeowner' | 'gardener'): Promise<SignupResult> => {
-    setLoading(true);
-    try {
-      console.log('Attempting signup for:', email, 'as', userType);
+    // Get the user object from the auth data
+    const user = authData.user;
 
-      // Get the correct redirect URL for the current environment
-      const redirectUrl = getRedirectUrl();
-      console.log('Using redirect URL:', redirectUrl);
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            name,
-            user_type: userType
-          }
-        }
-      });
-
-      if (error) {
-        console.error('Signup error:', error);
-        throw new Error(getSignupErrorMessage(error));
-      }
-
-      console.log('Signup successful:', data);
-
-      // Check if email confirmation is required
-      if (data.user && !data.user.email_confirmed_at) {
-        console.log('Email confirmation required');
-        return { 
-          success: true, 
-          emailConfirmationRequired: true,
-          message: 'تم إنشاء الحساب بنجاح! تم إرسال رسالة تأكيد إلى بريدك الإلكتروني'
-        };
-      } else if (data.user && data.user.email_confirmed_at) {
-        console.log('User email already confirmed, can proceed');
-        return { 
-          success: true, 
-          emailConfirmationRequired: false,
-          message: 'تم إنشاء الحساب وتأكيده بنجاح!'
-        };
-      }
-
-      // Fallback case
-      return {
-        success: true,
-        emailConfirmationRequired: true,
-        message: 'تم إنشاء الحساب بنجاح!'
-      };
-
-    } catch (error: any) {
-      console.error('Signup error:', error);
-      throw new Error(error.message || 'خطأ في إنشاء الحساب');
-    } finally {
-      setLoading(false);
+    if (!user) {
+      return { success: false, error: 'Failed to retrieve user data after signup' };
     }
-  };
+
+    // Create a user profile in the 'profiles' table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert([
+        {
+          id: user.id,
+          email: email,
+          name: name,
+          user_type: 'user', // Set the default user type
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError);
+      return { success: false, error: 'Failed to create user profile' };
+    }
+
+    return { success: true, message: 'Signup successful. Please verify your email.' };
+  } catch (error: any) {
+    console.error('Signup error:', error);
+    return { success: false, error: error.message || 'Signup failed due to an unexpected error' };
+  }
 };
 
-export const createEmailVerificationHandler = () => {
-  return async (email: string): Promise<EmailVerificationResult> => {
+// Handler function for user login
+export const handleLogin = async (data: LoginData) => {
+  try {
+    const { email, password } = data;
+
+    // Sign in the user with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (authError) {
+      return handleAuthError(authError, 'Login failed');
+    }
+
+    // Check if the user object exists in the auth data
+    if (!authData?.user) {
+      return { success: false, error: 'Failed to retrieve user data after login' };
+    }
+
+    return { success: true, message: 'Login successful' };
+  } catch (error: any) {
+    console.error('Login error:', error);
+    return { success: false, error: error.message || 'Login failed due to an unexpected error' };
+  }
+};
+
+// Handler function for user logout
+export const handleLogout = async () => {
+  try {
+    // Sign out the user with Supabase Auth
+    const { error: authError } = await supabase.auth.signOut();
+
+    if (authError) {
+      return handleAuthError(authError, 'Logout failed');
+    }
+
+    return { success: true, message: 'Logout successful' };
+  } catch (error: any) {
+    console.error('Logout error:', error);
+    return { success: false, error: error.message || 'Logout failed due to an unexpected error' };
+  }
+};
+
+// Handler function to resend verification email
+export const handleResendVerification = async (email: string) => {
     try {
-      console.log('Attempting to resend verification email to:', email);
-      
-      // Get the correct redirect URL for the current environment
-      const redirectUrl = getRedirectUrl();
-      console.log('Using redirect URL for verification:', redirectUrl);
-      
+      // Send a password recovery email to the user
       const { error } = await supabase.auth.resend({
-        type: 'signup',
+        type: 'email',
         email: email,
-        options: {
-          emailRedirectTo: redirectUrl
-        }
-      });
-      
+      })
+  
       if (error) {
-        console.error('Email verification error:', error);
-        throw new Error(getAuthErrorMessage(error));
+        console.error('Error resending verification email:', error);
+        return { success: false, error: 'Failed to resend verification email.' };
       }
-      
-      console.log('Verification email sent successfully');
-      return { success: true, message: 'تم إرسال رسالة التأكيد بنجاح' };
+  
+      return { success: true, message: 'Verification email resent successfully.' };
     } catch (error: any) {
-      console.error('Email verification error:', error);
-      throw error;
+      console.error('Error in resendVerification:', error);
+      return { success: false, error: error.message || 'Failed to resend verification email due to an unexpected error' };
     }
   };
-};
-
-export const createAuthStateHandler = (
-  setSession: (session: any) => void,
-  setUser: (user: AuthUser | null) => void,
-  setLoading: (loading: boolean) => void
-) => {
-  return async (event: string, session: any) => {
-    console.log('Auth state changed:', event, session?.user?.email);
-    setSession(session);
-
-    if (session?.user) {
-      try {
-        // For admin user, ensure profile exists
-        if (session.user.email === 'zakariadrk00@gmail.com') {
-          await ensureAdminProfile(session.user.id);
-        }
-
-        // Fetch user profile to get name and user_type
-        const profile = await fetchUserProfile(session.user.id);
-        console.log('User profile:', profile);
-
-        setUser(createAuthUser(session.user, profile));
-      } catch (profileError) {
-        console.error('Error fetching profile:', profileError);
-        // Still set user even if profile fetch fails
-        setUser(createAuthUser(session.user, null));
-      }
-    } else {
-      setUser(null);
-    }
-    setLoading(false);
-  };
-};

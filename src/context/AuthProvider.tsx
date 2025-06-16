@@ -1,122 +1,210 @@
-
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
-import { AuthContextType, AuthUser } from './authTypes';
-import { User, Session } from '@supabase/supabase-js';
-import { createLoginHandler, createSignupHandler, createEmailVerificationHandler, createAuthStateHandler } from './authHandlers';
-import { adminLogin, isAdminEmail } from './adminUtils';
-import { ensureAdminProfile, fetchUserProfile, createAuthUser } from './authUtils';
+import { AuthContextType, UserProfile } from './authTypes';
+import { handleAuthError } from './authErrors';
+import { 
+  handleLogin as loginHandler,
+  handleSignup as signupHandler,
+  handleLogout as logoutHandler,
+  handleResendVerification as resendHandler 
+} from './authHandlers';
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Setup auth state listener and initial session
   useEffect(() => {
-    console.log('Setting up auth state listener...');
-    
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    const setupAuth = async () => {
+    const fetchSession = async () => {
       try {
-        const authStateHandler = createAuthStateHandler(setSession, setUser, setLoading);
-        
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(authStateHandler);
+        setLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
 
-        // Get initial session with retry logic
-        const getInitialSession = async () => {
-          try {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            
-            if (error) {
-              throw error;
-            }
-            
-            console.log('Initial session:', session?.user?.email);
-            setSession(session);
-
-            if (session?.user) {
-              try {
-                // For admin user, ensure profile exists
-                if (isAdminEmail(session.user.email || '')) {
-                  await ensureAdminProfile(session.user.id);
-                }
-
-                const profile = await fetchUserProfile(session.user.id);
-                console.log('Initial profile:', profile);
-
-                setUser(createAuthUser(session.user, profile));
-              } catch (profileError) {
-                console.error('Error fetching initial profile:', profileError);
-                setUser(createAuthUser(session.user, null));
-              }
-            } else {
-              setUser(null);
-            }
-            setLoading(false);
-
-          } catch (error) {
-            console.error('Error getting initial session:', error);
-            retryCount++;
-            
-            if (retryCount < maxRetries) {
-              console.log(`Retrying auth setup... (${retryCount}/${maxRetries})`);
-              setTimeout(getInitialSession, 2000 * retryCount);
-            } else {
-              console.error('Max retries reached for auth setup');
-              setLoading(false);
-            }
-          }
-        };
-
-        await getInitialSession();
-
-        return () => subscription.unsubscribe();
+        if (session) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        }
       } catch (error) {
-        console.error('Error setting up auth:', error);
+        console.error("Failed to fetch session:", error);
+      } finally {
         setLoading(false);
       }
     };
 
-    setupAuth();
+    const fetchProfile = async (userId: string) => {
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          setProfile(null);
+        } else {
+          setProfile(profileData);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        setProfile(null);
+      }
+    };
+
+    fetchSession();
+
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'INITIAL_SESSION') {
+        return;
+      }
+
+      if (session) {
+        setUser(session.user);
+        await fetchProfile(session.user.id);
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    });
   }, []);
 
-  const login = createLoginHandler(setLoading);
-  const signup = createSignupHandler(setLoading);
-  const sendEmailVerification = createEmailVerificationHandler();
-
-  // Enhanced admin login function
-  const createAdminUser = async () => {
+  const handleSignup = async (signupData: SignupData) => {
     try {
-      console.log('Admin login request...');
-      const result = await adminLogin();
-      return result;
-    } catch (error: any) {
-      console.error('Admin creation error:', error);
-      return { success: false, error: error.message };
+      setLoading(true);
+      const { data, error } = await signupHandler(signupData);
+
+      if (error) {
+        handleAuthError(error, 'signup');
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        setUser(data.user);
+        await fetchProfile(data.user.id);
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      console.error("Signup failed:", err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
     }
   };
 
-  const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+  const handleLogin = async (loginData: LoginData) => {
+    try {
+      setLoading(true);
+      const { data, error } = await loginHandler(loginData);
+
+      if (error) {
+        handleAuthError(error, 'login');
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        setUser(data.user);
+        await fetchProfile(data.user.id);
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      console.error("Login failed:", err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      await logoutHandler();
+      setUser(null);
+      setProfile(null);
+    } catch (err: any) {
+      console.error("Logout failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async (email: string) => {
+    try {
+      setLoading(true);
+      const { error } = await resendHandler(email);
+
+      if (error) {
+        handleAuthError(error, 'resend');
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      console.error("Resend verification failed:", err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateProfile = async (newProfileData: Partial<UserProfile>) => {
+    try {
+      setLoading(true);
+      if (!user) {
+        throw new Error("No user logged in");
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(newProfileData)
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Profile update failed:", error);
+        return { success: false, error: error.message };
+      }
+
+      setProfile(data);
+      return { success: true, data: data };
+    } catch (err: any) {
+      console.error("Profile update failed:", err);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    profile,
+    loading,
+    signup: handleSignup,
+    login: handleLogin,
+    logout: handleLogout,
+    resendVerification: handleResendVerification,
+    updateProfile,
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      login,
-      signup,
-      logout,
-      loading,
-      sendEmailVerification,
-      createAdminUser
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
