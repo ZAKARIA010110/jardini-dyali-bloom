@@ -41,3 +41,32 @@ export const validateAdminAccess = async (userId: string) => {
     };
   }
 };
+
+export const isAdminEmail = (email: string): boolean => {
+  const adminEmails = [
+    'zakariadrk00@gmail.com',
+    'admin@example.com'
+  ];
+  
+  return adminEmails.includes(email.toLowerCase());
+};
+
+export const checkSystemHasAdmin = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_type', 'admin')
+      .limit(1);
+
+    if (error) {
+      console.error('Error checking for existing admins:', error);
+      return false;
+    }
+
+    return data && data.length > 0;
+  } catch (err) {
+    console.error('Error in checkSystemHasAdmin:', err);
+    return false;
+  }
+};
