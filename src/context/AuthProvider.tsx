@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -42,7 +41,12 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error("Error fetching profile:", profileError);
         setProfile(null);
       } else {
-        setProfile(profileData);
+        // Cast user_type to the expected union type
+        const typedProfile: UserProfile = {
+          ...profileData,
+          user_type: profileData.user_type as 'homeowner' | 'gardener' | 'admin'
+        };
+        setProfile(typedProfile);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -198,7 +202,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return await sendEmailVerification(email);
   };
 
-  const updateProfile = async (newProfileData: Partial<UserProfile>) => {
+  const updateProfile = async (newProfileData: Partial<UserProfile>): Promise<{ success: boolean; data?: UserProfile; error?: string }> => {
     try {
       setLoading(true);
       if (!user) {
@@ -217,8 +221,14 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: false, error: error.message };
       }
 
-      setProfile(data);
-      return { success: true, data: data };
+      // Cast user_type to the expected union type
+      const typedProfile: UserProfile = {
+        ...data,
+        user_type: data.user_type as 'homeowner' | 'gardener' | 'admin'
+      };
+
+      setProfile(typedProfile);
+      return { success: true, data: typedProfile };
     } catch (err: any) {
       console.error("Profile update failed:", err);
       return { success: false, error: err.message };

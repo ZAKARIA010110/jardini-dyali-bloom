@@ -1,102 +1,99 @@
 
 import { supabase } from '../../integrations/supabase/client';
 
-// Ensure admin profile exists with correct role using the new function
-export const ensureAdminProfile = async (userId: string) => {
+export const makeUserAdmin = async (userId: string) => {
   try {
-    console.log('Ensuring admin profile for user:', userId);
-    
-    // First try to use the security definer function
-    const { error: functionError } = await supabase.rpc('create_admin_profile', {
-      user_id: userId,
-      user_email: 'zakariadrk00@gmail.com'
-    });
-    
-    if (functionError) {
-      console.error('Security definer function failed:', functionError);
-      
-      // Fallback to direct upsert
-      const { error: profileError } = await supabase
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ user_type: 'admin' })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error making user admin:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (err: any) {
+    console.error('Error in makeUserAdmin:', err);
+    return { success: false, error: err.message };
+  }
+};
+
+export const createAdminProfile = async (userId: string, email: string, name?: string) => {
+  try {
+    // First check if profile already exists
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (existingProfile) {
+      // Update existing profile to admin
+      const { data, error } = await supabase
         .from('profiles')
-        .upsert({
+        .update({ 
+          user_type: 'admin',
+          name: name || existingProfile.name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating profile to admin:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, data };
+    } else {
+      // Create new admin profile
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
           id: userId,
-          name: 'Zakaria Admin',
+          name: name || 'Admin User',
           user_type: 'admin',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        });
-      
-      if (profileError) {
-        console.error('Admin profile upsert error:', profileError);
-      } else {
-        console.log('Admin profile ensured with direct upsert');
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating admin profile:', error);
+        return { success: false, error: error.message };
       }
-    } else {
-      console.log('Admin profile ensured with security definer function');
+
+      return { success: true, data };
     }
-  } catch (error: unknown) {
-    console.error('Error ensuring admin profile:', error);
+  } catch (err: any) {
+    console.error('Error in createAdminProfile:', err);
+    return { success: false, error: err.message };
   }
 };
 
-// New function to create admin profile for current user
-export const createAdminForCurrentUser = async () => {
+export const getAdminProfile = async (userId: string) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return { success: false, error: 'لا يوجد مستخدم مسجل دخول' };
-    }
-
-    console.log('Creating admin profile for current user:', user.id);
-    
-    // Use the security definer function to create admin profile
-    const { error } = await supabase.rpc('create_admin_profile', {
-      user_id: user.id,
-      user_email: user.email || 'admin@example.com'
-    });
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .eq('user_type', 'admin')
+      .single();
 
     if (error) {
-      console.error('Error creating admin profile:', error);
+      console.error('Error fetching admin profile:', error);
       return { success: false, error: error.message };
     }
 
-    console.log('Admin profile created successfully');
-    return { success: true };
-  } catch (error: unknown) {
-    console.error('Error in createAdminForCurrentUser:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return { success: false, error: errorMessage };
-  }
-};
-
-// Emergency admin creation for development
-export const createEmergencyAdmin = async () => {
-  try {
-    console.log('Creating emergency admin...');
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return { success: false, error: 'No user logged in' };
-    }
-
-    // Force create admin profile using the security definer function
-    const { error } = await supabase.rpc('create_admin_profile', {
-      user_id: user.id,
-      user_email: user.email || 'emergency@admin.com'
-    });
-
-    if (error) {
-      console.error('Emergency admin creation failed:', error);
-      return { success: false, error: error.message };
-    }
-
-    console.log('Emergency admin created successfully');
-    return { success: true };
-  } catch (error: unknown) {
-    console.error('Error in createEmergencyAdmin:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return { success: false, error: errorMessage };
+    return { success: true, data };
+  } catch (err: any) {
+    console.error('Error in getAdminProfile:', err);
+    return { success: false, error: err.message };
   }
 };
