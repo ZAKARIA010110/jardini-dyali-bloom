@@ -1,7 +1,8 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
-import { AuthContextType, UserProfile } from './authTypes';
+import { AuthContextType, UserProfile, SignupResult, EmailVerificationResult, AuthUser } from './authTypes';
 import { handleAuthError } from './authErrors';
 import { 
   handleLogin as loginHandler,
@@ -10,7 +11,7 @@ import {
   handleResendVerification as resendHandler 
 } from './authHandlers';
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -25,9 +26,29 @@ interface AuthProviderProps {
 }
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        setProfile(null);
+      } else {
+        setProfile(profileData);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      setProfile(null);
+    }
+  };
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -36,33 +57,19 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session) {
-          setUser(session.user);
+          const authUser: AuthUser = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name,
+            user_type: session.user.user_metadata?.user_type
+          };
+          setUser(authUser);
           await fetchProfile(session.user.id);
         }
       } catch (error) {
         console.error("Failed to fetch session:", error);
       } finally {
         setLoading(false);
-      }
-    };
-
-    const fetchProfile = async (userId: string) => {
-      try {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          setProfile(null);
-        } else {
-          setProfile(profileData);
-        }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        setProfile(null);
       }
     };
 
@@ -74,7 +81,13 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (session) {
-        setUser(session.user);
+        const authUser: AuthUser = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name,
+          user_type: session.user.user_metadata?.user_type
+        };
+        setUser(authUser);
         await fetchProfile(session.user.id);
       } else {
         setUser(null);
@@ -83,49 +96,64 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   }, []);
 
-  const handleSignup = async (signupData: SignupData) => {
+  const handleSignup = async (email: string, password: string, name: string, userType: 'homeowner' | 'gardener'): Promise<SignupResult> => {
     try {
       setLoading(true);
-      const { data, error } = await signupHandler(signupData);
+      const result = await signupHandler({ email, password, name, userType });
 
-      if (error) {
-        handleAuthError(error, 'signup');
-        return { success: false, error: error.message };
+      if (result.success && !result.emailConfirmationRequired) {
+        // If signup was successful and no email confirmation needed, fetch the user
+        const { data: { user: newUser } } = await supabase.auth.getUser();
+        if (newUser) {
+          const authUser: AuthUser = {
+            id: newUser.id,
+            email: newUser.email || '',
+            name: newUser.user_metadata?.name || name,
+            user_type: userType
+          };
+          setUser(authUser);
+          await fetchProfile(newUser.id);
+        }
       }
 
-      if (data.user) {
-        setUser(data.user);
-        await fetchProfile(data.user.id);
-      }
-
-      return { success: true };
+      return result;
     } catch (err: any) {
       console.error("Signup failed:", err);
-      return { success: false, error: err.message };
+      return {
+        success: false,
+        emailConfirmationRequired: false,
+        message: '',
+        error: err.message
+      };
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogin = async (loginData: LoginData) => {
+  const handleLogin = async (email: string, password: string): Promise<void> => {
     try {
       setLoading(true);
-      const { data, error } = await loginHandler(loginData);
+      const result = await loginHandler({ email, password });
 
-      if (error) {
-        handleAuthError(error, 'login');
-        return { success: false, error: error.message };
+      if (result.error) {
+        throw new Error(result.error);
       }
 
-      if (data.user) {
-        setUser(data.user);
-        await fetchProfile(data.user.id);
+      // Fetch updated session after login
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const authUser: AuthUser = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name,
+          user_type: session.user.user_metadata?.user_type
+        };
+        setUser(authUser);
+        await fetchProfile(session.user.id);
       }
-
-      return { success: true };
     } catch (err: any) {
       console.error("Login failed:", err);
-      return { success: false, error: err.message };
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -144,23 +172,30 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const handleResendVerification = async (email: string) => {
+  const sendEmailVerification = async (email: string): Promise<EmailVerificationResult> => {
     try {
       setLoading(true);
-      const { error } = await resendHandler(email);
+      const result = await resendHandler(email);
 
-      if (error) {
-        handleAuthError(error, 'resend');
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
+      return {
+        success: result.success,
+        message: result.message || (result.success ? 'تم إرسال رسالة التأكيد بنجاح' : 'فشل في إرسال رسالة التأكيد'),
+        error: result.error
+      };
     } catch (err: any) {
-      console.error("Resend verification failed:", err);
-      return { success: false, error: err.message };
+      console.error("Send email verification failed:", err);
+      return {
+        success: false,
+        message: '',
+        error: err.message
+      };
     } finally {
       setLoading(false);
     }
+  };
+
+  const resendVerification = async (email: string) => {
+    return await sendEmailVerification(email);
   };
 
   const updateProfile = async (newProfileData: Partial<UserProfile>) => {
@@ -195,11 +230,13 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     profile,
-    loading,
-    signup: handleSignup,
+    session: null, // We can add session state later if needed
     login: handleLogin,
+    signup: handleSignup,
     logout: handleLogout,
-    resendVerification: handleResendVerification,
+    loading,
+    sendEmailVerification,
+    resendVerification,
     updateProfile,
   };
 

@@ -1,11 +1,12 @@
+
 import { supabase } from '../integrations/supabase/client';
 import { handleAuthError } from './authErrors';
-import { SignupData, LoginData } from './authTypes';
+import { SignupData, LoginData, SignupResult } from './authTypes';
 
 // Handler function for user signup
-export const handleSignup = async (data: SignupData) => {
+export const handleSignup = async (data: SignupData): Promise<SignupResult> => {
   try {
-    const { email, password, name } = data;
+    const { email, password, name, userType = 'homeowner' } = data;
 
     // Sign up the user with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -14,19 +15,31 @@ export const handleSignup = async (data: SignupData) => {
       options: {
         data: {
           name: name,
+          user_type: userType,
         },
       },
     });
 
     if (authError) {
-      return handleAuthError(authError, 'Signup failed');
+      const errorResult = handleAuthError(authError, 'Signup failed');
+      return {
+        success: false,
+        emailConfirmationRequired: false,
+        message: '',
+        error: errorResult.error
+      };
     }
 
     // Get the user object from the auth data
     const user = authData.user;
 
     if (!user) {
-      return { success: false, error: 'Failed to retrieve user data after signup' };
+      return {
+        success: false,
+        emailConfirmationRequired: false,
+        message: '',
+        error: 'Failed to retrieve user data after signup'
+      };
     }
 
     // Create a user profile in the 'profiles' table
@@ -35,9 +48,8 @@ export const handleSignup = async (data: SignupData) => {
       .insert([
         {
           id: user.id,
-          email: email,
           name: name,
-          user_type: 'user', // Set the default user type
+          user_type: userType,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
@@ -45,13 +57,27 @@ export const handleSignup = async (data: SignupData) => {
 
     if (profileError) {
       console.error('Profile creation error:', profileError);
-      return { success: false, error: 'Failed to create user profile' };
+      return {
+        success: false,
+        emailConfirmationRequired: false,
+        message: '',
+        error: 'Failed to create user profile'
+      };
     }
 
-    return { success: true, message: 'Signup successful. Please verify your email.' };
+    return {
+      success: true,
+      emailConfirmationRequired: !user.email_confirmed_at,
+      message: user.email_confirmed_at ? 'تم إنشاء الحساب بنجاح!' : 'تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني للتأكيد.'
+    };
   } catch (error: any) {
     console.error('Signup error:', error);
-    return { success: false, error: error.message || 'Signup failed due to an unexpected error' };
+    return {
+      success: false,
+      emailConfirmationRequired: false,
+      message: '',
+      error: error.message || 'Signup failed due to an unexpected error'
+    };
   }
 };
 
@@ -101,21 +127,21 @@ export const handleLogout = async () => {
 
 // Handler function to resend verification email
 export const handleResendVerification = async (email: string) => {
-    try {
-      // Send a password recovery email to the user
-      const { error } = await supabase.auth.resend({
-        type: 'email',
-        email: email,
-      })
-  
-      if (error) {
-        console.error('Error resending verification email:', error);
-        return { success: false, error: 'Failed to resend verification email.' };
-      }
-  
-      return { success: true, message: 'Verification email resent successfully.' };
-    } catch (error: any) {
-      console.error('Error in resendVerification:', error);
-      return { success: false, error: error.message || 'Failed to resend verification email due to an unexpected error' };
+  try {
+    // Send a password recovery email to the user
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+    });
+
+    if (error) {
+      console.error('Error resending verification email:', error);
+      return { success: false, error: 'Failed to resend verification email.' };
     }
-  };
+
+    return { success: true, message: 'Verification email resent successfully.' };
+  } catch (error: any) {
+    console.error('Error in resendVerification:', error);
+    return { success: false, error: error.message || 'Failed to resend verification email due to an unexpected error' };
+  }
+};
