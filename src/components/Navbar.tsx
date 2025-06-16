@@ -39,6 +39,9 @@ const Navbar = () => {
             <Link to="/gardeners" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
               {t('nav.gardeners')}
             </Link>
+            <Link to="/garden-analysis" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+              تحليل الحديقة
+            </Link>
             <Link to="/become-gardener" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
               {t('nav.become.gardener')}
             </Link>
@@ -122,6 +125,13 @@ const Navbar = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t('nav.gardeners')}
+              </Link>
+              <Link 
+                to="/garden-analysis" 
+                className="text-gray-700 hover:text-[#4CAF50] transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                تحليل الحديقة
               </Link>
               <Link 
                 to="/become-gardener" 

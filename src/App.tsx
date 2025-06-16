@@ -20,6 +20,7 @@ import ContactPage from './pages/ContactPage';
 import FAQPage from './pages/FAQPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminDashboard from './pages/AdminDashboard';
+import GardenAnalysisPage from './pages/GardenAnalysisPage';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ function App() {
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/garden-analysis" element={<GardenAnalysisPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Router>
