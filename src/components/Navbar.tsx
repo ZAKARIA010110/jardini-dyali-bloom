@@ -26,7 +26,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 rtl:space-x-reverse">
             <div className="w-8 h-8 bg-[#4CAF50] rounded-lg flex items-center justify-center py-0">
-              <span className="text-white font-bold text-lg">ج</span>
+              <span className="text-white font-bold text-lg">JD</span>
             </div>
             <span className="text-xl font-bold text-gray-900">Jardini Dyali</span>
           </Link>
