@@ -24,9 +24,13 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 rtl:space-x-reverse">
-            <div className="w-8 h-8 bg-[#4CAF50] rounded-lg flex items-center justify-center py-0">
-              <span className="text-white font-bold text-lg">JD</span>
+          <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+            <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center p-1">
+              <img 
+                src="/lovable-uploads/519807c6-1cea-451e-aad5-1a3dd2972dbe.png" 
+                alt="Jardini Dyali Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-xl font-bold text-gray-900">Jardini Dyali</span>
           </Link>

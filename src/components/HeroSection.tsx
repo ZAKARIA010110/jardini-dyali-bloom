@@ -20,7 +20,7 @@ const HeroSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
-          <div className="text-center lg:text-start">
+          <div className="text-center lg:text-start order-1 lg:order-1">
             <div className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-in">
               <Sparkles className="w-4 h-4 ml-2" />
               منصة البستنة الأولى في المغرب
@@ -85,7 +85,7 @@ const HeroSection = () => {
           </div>
 
           {/* Enhanced Image with uploaded gardeners photo */}
-          <div className="relative">
+          <div className="relative order-2 lg:order-2">
             <div className="relative group">
               {/* Main image container */}
               <div className="aspect-square rounded-3xl bg-gradient-to-br from-green-400 via-emerald-400 to-green-600 p-8 shadow-2xl transform group-hover:scale-105 transition-all duration-500">
