@@ -179,6 +179,51 @@ export type Database = {
         }
         Relationships: []
       }
+      gardener_bids: {
+        Row: {
+          bid_amount: number
+          created_at: string
+          gardener_id: string
+          id: string
+          job_posting_id: string
+          message: string | null
+          status: string | null
+        }
+        Insert: {
+          bid_amount: number
+          created_at?: string
+          gardener_id: string
+          id?: string
+          job_posting_id: string
+          message?: string | null
+          status?: string | null
+        }
+        Update: {
+          bid_amount?: number
+          created_at?: string
+          gardener_id?: string
+          id?: string
+          job_posting_id?: string
+          message?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gardener_bids_gardener_id_fkey"
+            columns: ["gardener_id"]
+            isOneToOne: false
+            referencedRelation: "gardeners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gardener_bids_job_posting_id_fkey"
+            columns: ["job_posting_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gardeners: {
         Row: {
           avatar_url: string | null
@@ -235,6 +280,68 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      job_postings: {
+        Row: {
+          assigned_at: string | null
+          assigned_gardener_id: string | null
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          description: string
+          homeowner_id: string
+          id: string
+          location: string
+          preferred_date: string | null
+          preferred_time: string | null
+          service_type: string
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_gardener_id?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          description: string
+          homeowner_id: string
+          id?: string
+          location: string
+          preferred_date?: string | null
+          preferred_time?: string | null
+          service_type: string
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_gardener_id?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          description?: string
+          homeowner_id?: string
+          id?: string
+          location?: string
+          preferred_date?: string | null
+          preferred_time?: string | null
+          service_type?: string
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_postings_assigned_gardener_id_fkey"
+            columns: ["assigned_gardener_id"]
+            isOneToOne: false
+            referencedRelation: "gardeners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

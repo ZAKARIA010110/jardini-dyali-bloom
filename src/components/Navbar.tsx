@@ -51,6 +51,16 @@ const Navbar = () => {
             <Link to="/faq" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
               {t('nav.faq')}
             </Link>
+            {user && (
+              <>
+                <Link to="/job-postings" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+                  طلبات العمل
+                </Link>
+                <Link to="/gardener-jobs" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+                  وظائف البستانيين
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Auth Section */}
@@ -110,6 +120,16 @@ const Navbar = () => {
               <Link to="/faq" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {t('nav.faq')}
               </Link>
+              {user && (
+                <>
+                  <Link to="/job-postings" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    طلبات العمل
+                  </Link>
+                  <Link to="/gardener-jobs" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    وظائف البستانيين
+                  </Link>
+                </>
+              )}
               
               {user ? <div className="pt-4 border-t border-gray-200 space-y-4">
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
