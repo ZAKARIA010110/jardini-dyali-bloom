@@ -145,7 +145,14 @@ const translations = {
     'stats.gardeners': 'بستاني محترف',
     'stats.clients': 'عميل راضي',
     'stats.projects': 'مشروع مكتمل',
-    'stats.cities': 'مدينة مغربية'
+    'stats.cities': 'مدينة مغربية',
+    
+    // Testimonials
+    'testimonials.title': 'آراء عملائنا',
+    'testimonials.subtitle': 'اكتشف ما يقوله عملاؤنا عن تجربتهم مع جارديني ديالي',
+    'testimonials.service.quality': 'خدمة ممتازة',
+    'testimonials.professional': 'عمل احترافي',
+    'testimonials.price.fair': 'سعر عادل'
   },
   fr: {
     // Navigation
@@ -283,7 +290,14 @@ const translations = {
     'stats.gardeners': 'Jardiniers professionnels',
     'stats.clients': 'Clients satisfaits',
     'stats.projects': 'Projets terminés',
-    'stats.cities': 'Villes marocaines'
+    'stats.cities': 'Villes marocaines',
+    
+    // Testimonials
+    'testimonials.title': 'Avis de nos clients',
+    'testimonials.subtitle': 'Découvrez ce que nos clients disent de leur expérience avec Jardini Dyali',
+    'testimonials.service.quality': 'Service excellent',
+    'testimonials.professional': 'Travail professionnel',
+    'testimonials.price.fair': 'Prix équitable'
   },
   en: {
     // Navigation

@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/useAuth';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
+import LanguageSwitcher from './LanguageSwitcher';
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -69,6 +70,7 @@ const Navbar = () => {
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4 rtl:space-x-reverse">
+            <LanguageSwitcher />
             {user ? <div className="relative">
                 <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center space-x-2 rtl:space-x-reverse px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="w-8 h-8 bg-[#4CAF50] rounded-full flex items-center justify-center">
