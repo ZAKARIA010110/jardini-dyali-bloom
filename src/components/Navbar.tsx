@@ -53,6 +53,9 @@ const Navbar = () => {
             <Link to="/faq" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
               {t('nav.faq')}
             </Link>
+            <Link to="/news" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+              آخر الأخبار
+            </Link>
             {user && (
               <>
                 <Link to="/job-postings" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
@@ -122,6 +125,9 @@ const Navbar = () => {
               </Link>
               <Link to="/faq" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {t('nav.faq')}
+              </Link>
+              <Link to="/news" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
+                آخر الأخبار
               </Link>
               {user && (
                 <>
