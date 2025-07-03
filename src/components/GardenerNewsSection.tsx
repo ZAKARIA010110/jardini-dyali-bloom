@@ -36,8 +36,73 @@ const GardenerNewsSection = () => {
   const [posts, setPosts] = useState<GardenerPost[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Sample posts for demo
+  const samplePosts: GardenerPost[] = [
+    {
+      id: '1',
+      content: 'انتهيت اليوم من تنسيق حديقة رائعة في الرباط! استغرق العمل 3 أيام كاملة وتم زراعة أكثر من 50 نبتة مختلفة. النتيجة مذهلة والعميل سعيد جداً 🌿🌸',
+      image_url: '/lovable-uploads/f8dcc078-0f78-4334-95da-bd012d0c5551.png',
+      garden_location: 'الرباط، المغرب',
+      created_at: '2024-07-03T10:30:00Z',
+      gardener: {
+        id: '1',
+        name: 'أحمد البستاني',
+        avatar_url: '/lovable-uploads/519807c6-1cea-451e-aad5-1a3dd2972dbe.png',
+        location: 'الرباط',
+        experience: '8 سنوات خبرة',
+        services: ['تنسيق الحدائق', 'زراعة الأشجار', 'العناية بالنباتات'],
+        rating: 4.8,
+      },
+      likes_count: 24,
+      comments_count: 8,
+      is_liked: false,
+    },
+    {
+      id: '2',
+      content: 'شاهدوا كيف حولنا هذه المساحة الفارغة إلى حديقة خضراء جميلة! العمل استغرق أسبوعين مع فريقي المتخصص 🌱',
+      video_url: '/lovable-uploads/fc834d8b-6d31-44df-a0c8-2d9c1dc2eba2.png',
+      garden_location: 'الدار البيضاء، المغرب',
+      created_at: '2024-07-02T14:15:00Z',
+      gardener: {
+        id: '2',
+        name: 'فاطمة الزهراء',
+        avatar_url: '/lovable-uploads/519807c6-1cea-451e-aad5-1a3dd2972dbe.png',
+        location: 'الدار البيضاء',
+        experience: '12 سنة خبرة',
+        services: ['تصميم الحدائق', 'أنظمة الري', 'صيانة الحدائق'],
+        rating: 4.9,
+      },
+      likes_count: 45,
+      comments_count: 12,
+      is_liked: true,
+    },
+    {
+      id: '3',
+      content: 'نصائح مهمة لري النباتات في فصل الصيف: 🌞\n1. الري في الصباح الباكر أو المساء\n2. فحص رطوبة التربة قبل الري\n3. استخدام المالش للحفاظ على الرطوبة\n4. تجنب ري الأوراق مباشرة',
+      image_url: '/lovable-uploads/f8dcc078-0f78-4334-95da-bd012d0c5551.png',
+      garden_location: 'مراكش، المغرب',
+      created_at: '2024-07-01T09:45:00Z',
+      gardener: {
+        id: '3',
+        name: 'يوسف الجردي',
+        avatar_url: '/lovable-uploads/519807c6-1cea-451e-aad5-1a3dd2972dbe.png',
+        location: 'مراكش',
+        experience: '6 سنوات خبرة',
+        services: ['نصائح الزراعة', 'العناية بالنباتات', 'تنسيق الحدائق'],
+        rating: 4.7,
+      },
+      likes_count: 18,
+      comments_count: 5,
+      is_liked: false,
+    },
+  ];
+
   useEffect(() => {
-    fetchPosts();
+    // Simulate loading and use sample data
+    setTimeout(() => {
+      setPosts(samplePosts);
+      setLoading(false);
+    }, 1000);
   }, []);
 
   const fetchPosts = async () => {
