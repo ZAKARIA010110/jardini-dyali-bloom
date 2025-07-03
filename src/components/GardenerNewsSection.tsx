@@ -35,6 +35,8 @@ const GardenerNewsSection = () => {
   const { t } = useLanguage();
   const [posts, setPosts] = useState<GardenerPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showComments, setShowComments] = useState<string | null>(null);
+  const [newComment, setNewComment] = useState('');
 
   // Sample posts for demo
   const samplePosts: GardenerPost[] = [
@@ -201,6 +203,35 @@ const GardenerNewsSection = () => {
     }
   };
 
+  const handleComment = (postId: string) => {
+    setShowComments(showComments === postId ? null : postId);
+  };
+
+  const handleAddComment = async (postId: string) => {
+    if (!user || !newComment.trim()) return;
+
+    try {
+      await supabase
+        .from('post_comments')
+        .insert({
+          post_id: postId,
+          user_id: user.id,
+          content: newComment.trim()
+        });
+
+      // Update local state
+      setPosts(posts.map(p => 
+        p.id === postId 
+          ? { ...p, comments_count: p.comments_count + 1 }
+          : p
+      ));
+      
+      setNewComment('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ar-MA', {
@@ -335,7 +366,10 @@ const GardenerNewsSection = () => {
                       <span>{post.likes_count}</span>
                     </button>
 
-                    <button className="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 hover:text-blue-500 transition-colors">
+                    <button 
+                      onClick={() => handleComment(post.id)}
+                      className="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 hover:text-blue-500 transition-colors"
+                    >
                       <MessageCircle className="w-5 h-5" />
                       <span>{post.comments_count}</span>
                     </button>
@@ -349,6 +383,69 @@ const GardenerNewsSection = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Comments Section */}
+                {showComments === post.id && (
+                  <div className="mt-4 pt-4 border-t">
+                    <h4 className="font-semibold mb-4">التعليقات</h4>
+                    
+                    {/* Add Comment */}
+                    {user && (
+                      <div className="flex gap-3 mb-4">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src="" />
+                          <AvatarFallback>أ</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <textarea
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="اكتب تعليقاً..."
+                            className="w-full p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+                            rows={2}
+                          />
+                          <Button 
+                            onClick={() => handleAddComment(post.id)}
+                            size="sm" 
+                            className="mt-2 bg-green-600 hover:bg-green-700"
+                            disabled={!newComment.trim()}
+                          >
+                            إضافة تعليق
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sample Comments */}
+                    <div className="space-y-3">
+                      <div className="flex gap-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback>م</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="font-semibold text-sm">محمد الحسين</p>
+                            <p className="text-gray-700">عمل رائع! أتطلع لرؤية المزيد من إبداعاتك</p>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">منذ ساعتين</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback>س</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="font-semibold text-sm">سارة العلوي</p>
+                            <p className="text-gray-700">هل يمكنك مساعدتي في تنسيق حديقتي المنزلية؟</p>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">منذ 3 ساعات</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
