@@ -1,13 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/useAuth';
 import { useLanguage } from '@/context/LanguageContext';
-import { Heart, MessageCircle, Share2, Eye, Calendar } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Eye, Calendar, Copy, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
+import { Textarea } from './ui/textarea';
 import { Link } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
 
 interface GardenerPost {
   id: string;
@@ -30,6 +33,14 @@ interface GardenerPost {
   is_liked: boolean;
 }
 
+interface Comment {
+  id: string;
+  content: string;
+  created_at: string;
+  user_name: string;
+  avatar_url?: string;
+}
+
 const GardenerNewsSection = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -37,6 +48,8 @@ const GardenerNewsSection = () => {
   const [loading, setLoading] = useState(true);
   const [showComments, setShowComments] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
+  const [comments, setComments] = useState<{ [postId: string]: Comment[] }>({});
+  const [showShareMenu, setShowShareMenu] = useState<string | null>(null);
 
   // Sample posts for demo
   const samplePosts: GardenerPost[] = [
@@ -99,60 +112,51 @@ const GardenerNewsSection = () => {
     },
   ];
 
+  // Sample comments for demo
+  const sampleComments: { [postId: string]: Comment[] } = {
+    '1': [
+      {
+        id: '1',
+        content: 'عمل رائع! أتطلع لرؤية المزيد من إبداعاتك',
+        created_at: '2024-07-03T12:30:00Z',
+        user_name: 'محمد الحسين',
+        avatar_url: '/lovable-uploads/519807c6-1cea-451e-aad5-1a3dd2972dbe.png',
+      },
+      {
+        id: '2',
+        content: 'هل يمكنك مساعدتي في تنسيق حديقتي المنزلية؟',
+        created_at: '2024-07-03T13:45:00Z',
+        user_name: 'سارة العلوي',
+        avatar_url: '/lovable-uploads/519807c6-1cea-451e-aad5-1a3dd2972dbe.png',
+      },
+    ],
+    '2': [
+      {
+        id: '3',
+        content: 'تحويل مذهل! كم تكلف مثل هذه الأعمال؟',
+        created_at: '2024-07-02T16:20:00Z',
+        user_name: 'عبد الله المغربي',
+        avatar_url: '/lovable-uploads/519807c6-1cea-451e-aad5-1a3dd2972dbe.png',
+      },
+    ],
+    '3': [
+      {
+        id: '4',
+        content: 'نصائح قيمة جداً، شكراً لك!',
+        created_at: '2024-07-01T11:30:00Z',
+        user_name: 'Anonymous User',
+      },
+    ],
+  };
+
   useEffect(() => {
     // Simulate loading and use sample data
     setTimeout(() => {
       setPosts(samplePosts);
+      setComments(sampleComments);
       setLoading(false);
     }, 1000);
   }, []);
-
-  const fetchPosts = async () => {
-    try {
-      // Fetch posts with gardener info and interaction counts
-      const { data: postsData, error } = await supabase
-        .from('gardener_posts')
-        .select(`
-          *,
-          gardener:gardeners(id, name, avatar_url, location, experience, services, rating),
-          likes:post_likes(count),
-          comments:post_comments(count)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-
-      // Check if user has liked each post
-      const postsWithLikes = await Promise.all(
-        (postsData || []).map(async (post) => {
-          let isLiked = false;
-          if (user) {
-            const { data: likeData } = await supabase
-              .from('post_likes')
-              .select('id')
-              .eq('post_id', post.id)
-              .eq('user_id', user.id)
-              .single();
-            isLiked = !!likeData;
-          }
-
-          return {
-            ...post,
-            likes_count: post.likes?.[0]?.count || 0,
-            comments_count: post.comments?.[0]?.count || 0,
-            is_liked: isLiked,
-          };
-        })
-      );
-
-      setPosts(postsWithLikes);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLike = async (postId: string) => {
     if (!user) return;
@@ -190,45 +194,73 @@ const GardenerNewsSection = () => {
     }
   };
 
-  const handleShare = (post: GardenerPost) => {
-    if (navigator.share) {
-      navigator.share({
-        title: `منشور من ${post.gardener.name}`,
-        text: post.content,
-        url: window.location.href,
-      });
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-    }
-  };
-
   const handleComment = (postId: string) => {
     setShowComments(showComments === postId ? null : postId);
   };
 
   const handleAddComment = async (postId: string) => {
-    if (!user || !newComment.trim()) return;
+    if (!newComment.trim()) return;
 
-    try {
-      await supabase
-        .from('post_comments')
-        .insert({
-          post_id: postId,
-          user_id: user.id,
-          content: newComment.trim()
-        });
+    const userName = user?.email?.split('@')[0] || 'Anonymous User';
+    const newCommentObj: Comment = {
+      id: Date.now().toString(),
+      content: newComment.trim(),
+      created_at: new Date().toISOString(),
+      user_name: userName,
+      avatar_url: user ? '/lovable-uploads/519807c6-1cea-451e-aad5-1a3dd2972dbe.png' : undefined,
+    };
 
-      // Update local state
-      setPosts(posts.map(p => 
-        p.id === postId 
-          ? { ...p, comments_count: p.comments_count + 1 }
-          : p
-      ));
-      
-      setNewComment('');
-    } catch (error) {
-      console.error('Error adding comment:', error);
+    // Update local state
+    setComments(prev => ({
+      ...prev,
+      [postId]: [...(prev[postId] || []), newCommentObj]
+    }));
+
+    setPosts(posts.map(p => 
+      p.id === postId 
+        ? { ...p, comments_count: p.comments_count + 1 }
+        : p
+    ));
+    
+    setNewComment('');
+
+    if (user) {
+      try {
+        await supabase
+          .from('post_comments')
+          .insert({
+            post_id: postId,
+            user_id: user.id,
+            content: newComment.trim()
+          });
+      } catch (error) {
+        console.error('Error adding comment:', error);
+      }
+    }
+  };
+
+  const handleShare = (post: GardenerPost, platform?: string) => {
+    const postUrl = `${window.location.origin}/news#post-${post.id}`;
+    const shareText = `شاهد هذا المنشور من ${post.gardener.name}: ${post.content.substring(0, 100)}...`;
+
+    if (platform === 'facebook') {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`, '_blank');
+    } else if (platform === 'twitter') {
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(postUrl)}`, '_blank');
+    } else if (platform === 'linkedin') {
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`, '_blank');
+    } else if (platform === 'whatsapp') {
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + postUrl)}`, '_blank');
+    } else if (platform === 'copy') {
+      navigator.clipboard.writeText(postUrl);
+      toast({
+        title: "تم نسخ الرابط",
+        description: "تم نسخ رابط المنشور إلى الحافظة",
+      });
+      setShowShareMenu(null);
+    } else {
+      // Toggle share menu
+      setShowShareMenu(showShareMenu === post.id ? null : post.id);
     }
   };
 
@@ -239,6 +271,17 @@ const GardenerNewsSection = () => {
       month: 'long',
       day: 'numeric',
     });
+  };
+
+  const formatTime = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'منذ أقل من ساعة';
+    if (diffInHours < 24) return `منذ ${diffInHours} ساعة`;
+    if (diffInHours < 48) return 'منذ يوم واحد';
+    return `منذ ${Math.floor(diffInHours / 24)} أيام`;
   };
 
   if (loading) {
@@ -262,7 +305,7 @@ const GardenerNewsSection = () => {
 
       <div className="space-y-8">
         {posts.map((post) => (
-          <Card key={post.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+          <Card key={post.id} id={`post-${post.id}`} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
             <CardContent className="p-0">
               {/* Gardener Header */}
               <div className="p-6 border-b">
@@ -371,16 +414,59 @@ const GardenerNewsSection = () => {
                       className="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 hover:text-blue-500 transition-colors"
                     >
                       <MessageCircle className="w-5 h-5" />
-                      <span>{post.comments_count}</span>
+                      <span>{comments[post.id]?.length || post.comments_count}</span>
                     </button>
 
-                    <button
-                      onClick={() => handleShare(post)}
-                      className="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 hover:text-green-500 transition-colors"
-                    >
-                      <Share2 className="w-5 h-5" />
-                      <span>مشاركة</span>
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => handleShare(post)}
+                        className="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 hover:text-green-500 transition-colors"
+                      >
+                        <Share2 className="w-5 h-5" />
+                        <span>مشاركة</span>
+                      </button>
+
+                      {/* Share Menu */}
+                      {showShareMenu === post.id && (
+                        <div className="absolute top-full mt-2 left-0 bg-white border rounded-lg shadow-lg p-2 z-10 min-w-48">
+                          <button
+                            onClick={() => handleShare(post, 'facebook')}
+                            className="flex items-center space-x-2 rtl:space-x-reverse w-full p-2 hover:bg-gray-50 rounded"
+                          >
+                            <Facebook className="w-4 h-4 text-blue-600" />
+                            <span>فيسبوك</span>
+                          </button>
+                          <button
+                            onClick={() => handleShare(post, 'twitter')}
+                            className="flex items-center space-x-2 rtl:space-x-reverse w-full p-2 hover:bg-gray-50 rounded"
+                          >
+                            <Twitter className="w-4 h-4 text-sky-500" />
+                            <span>تويتر</span>
+                          </button>
+                          <button
+                            onClick={() => handleShare(post, 'linkedin')}
+                            className="flex items-center space-x-2 rtl:space-x-reverse w-full p-2 hover:bg-gray-50 rounded"
+                          >
+                            <Linkedin className="w-4 h-4 text-blue-700" />
+                            <span>لينكد إن</span>
+                          </button>
+                          <button
+                            onClick={() => handleShare(post, 'whatsapp')}
+                            className="flex items-center space-x-2 rtl:space-x-reverse w-full p-2 hover:bg-gray-50 rounded"
+                          >
+                            <span className="w-4 h-4 text-green-500">📱</span>
+                            <span>واتساب</span>
+                          </button>
+                          <button
+                            onClick={() => handleShare(post, 'copy')}
+                            className="flex items-center space-x-2 rtl:space-x-reverse w-full p-2 hover:bg-gray-50 rounded"
+                          >
+                            <Copy className="w-4 h-4 text-gray-600" />
+                            <span>نسخ الرابط</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -390,59 +476,49 @@ const GardenerNewsSection = () => {
                     <h4 className="font-semibold mb-4">التعليقات</h4>
                     
                     {/* Add Comment */}
-                    {user && (
-                      <div className="flex gap-3 mb-4">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src="" />
-                          <AvatarFallback>أ</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <textarea
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            placeholder="اكتب تعليقاً..."
-                            className="w-full p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
-                            rows={2}
-                          />
-                          <Button 
-                            onClick={() => handleAddComment(post.id)}
-                            size="sm" 
-                            className="mt-2 bg-green-600 hover:bg-green-700"
-                            disabled={!newComment.trim()}
-                          >
-                            إضافة تعليق
-                          </Button>
-                        </div>
+                    <div className="flex gap-3 mb-4">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={user ? '/lovable-uploads/519807c6-1cea-451e-aad5-1a3dd2972dbe.png' : ''} />
+                        <AvatarFallback>
+                          {user ? user.email?.slice(0, 2).toUpperCase() : 'أ'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <Textarea
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          placeholder="اكتب تعليقاً..."
+                          className="resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+                          rows={2}
+                        />
+                        <Button 
+                          onClick={() => handleAddComment(post.id)}
+                          size="sm" 
+                          className="mt-2 bg-green-600 hover:bg-green-700"
+                          disabled={!newComment.trim()}
+                        >
+                          إضافة تعليق
+                        </Button>
                       </div>
-                    )}
+                    </div>
 
-                    {/* Sample Comments */}
+                    {/* Comments List */}
                     <div className="space-y-3">
-                      <div className="flex gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback>م</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="font-semibold text-sm">محمد الحسين</p>
-                            <p className="text-gray-700">عمل رائع! أتطلع لرؤية المزيد من إبداعاتك</p>
+                      {comments[post.id]?.map((comment) => (
+                        <div key={comment.id} className="flex gap-3">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={comment.avatar_url} />
+                            <AvatarFallback>{comment.user_name.slice(0, 2)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <p className="font-semibold text-sm">{comment.user_name}</p>
+                              <p className="text-gray-700">{comment.content}</p>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{formatTime(comment.created_at)}</p>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">منذ ساعتين</p>
                         </div>
-                      </div>
-                      
-                      <div className="flex gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback>س</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="font-semibold text-sm">سارة العلوي</p>
-                            <p className="text-gray-700">هل يمكنك مساعدتي في تنسيق حديقتي المنزلية؟</p>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">منذ 3 ساعات</p>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 )}
