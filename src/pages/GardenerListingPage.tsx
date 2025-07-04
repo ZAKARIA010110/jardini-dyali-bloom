@@ -1,28 +1,85 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { mockGardeners } from '../data/gardeners';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { PaginationControls } from '../components/ui/pagination-controls';
 import { Star, MapPin, Search, Filter } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
+const GARDENERS_PER_PAGE = 10;
+
 const GardenerListingPage = () => {
   const { t } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [paginatedGardeners, setPaginatedGardeners] = useState(mockGardeners);
 
   const locations = ['الرباط', 'الدار البيضاء', 'فاس', 'مراكش', 'أكادير', 'طنجة'];
 
-  const filteredGardeners = mockGardeners.filter(gardener => {
+  // Get current page from URL params
+  useEffect(() => {
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    setCurrentPage(page);
+  }, [searchParams]);
+
+  // Filter and paginate gardeners
+  useEffect(() => {
+    const filteredGardeners = mockGardeners.filter(gardener => {
+      const matchesSearch = gardener.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           gardener.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesLocation = !selectedLocation || gardener.location === selectedLocation;
+      return matchesSearch && matchesLocation;
+    });
+
+    const totalPages = Math.ceil(filteredGardeners.length / GARDENERS_PER_PAGE);
+    setTotalPages(totalPages);
+
+    const startIndex = (currentPage - 1) * GARDENERS_PER_PAGE;
+    const endIndex = startIndex + GARDENERS_PER_PAGE;
+    const paginated = filteredGardeners.slice(startIndex, endIndex);
+    
+    setPaginatedGardeners(paginated);
+  }, [searchTerm, selectedLocation, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    const params = new URLSearchParams(searchParams);
+    params.set('page', page.toString());
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+    const params = new URLSearchParams(searchParams);
+    params.delete('page');
+    setSearchParams(params);
+  };
+
+  const handleLocationChange = (value: string) => {
+    setSelectedLocation(value);
+    setCurrentPage(1);
+    const params = new URLSearchParams(searchParams);
+    params.delete('page');
+    setSearchParams(params);
+  };
+
+  const totalFilteredCount = mockGardeners.filter(gardener => {
     const matchesSearch = gardener.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          gardener.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesLocation = !selectedLocation || gardener.location === selectedLocation;
     return matchesSearch && matchesLocation;
-  });
+  }).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -49,7 +106,7 @@ const GardenerListingPage = () => {
                   type="text"
                   placeholder="ابحث عن بستاني أو خدمة..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pr-10 text-right"
                 />
               </div>
@@ -57,7 +114,7 @@ const GardenerListingPage = () => {
               <div className="relative">
                 <select
                   value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  onChange={(e) => handleLocationChange(e.target.value)}
                   className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 text-right focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:border-transparent"
                 >
                   <option value="">جميع المدن</option>
@@ -75,12 +132,15 @@ const GardenerListingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="mb-6">
             <p className="text-gray-600">
-              تم العثور على {filteredGardeners.length} بستاني محترف
+              تم العثور على {totalFilteredCount} بستاني محترف
+              {totalPages > 1 && (
+                <span className="text-gray-500"> - صفحة {currentPage} من {totalPages}</span>
+              )}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredGardeners.map((gardener) => (
+            {paginatedGardeners.map((gardener) => (
               <div key={gardener.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                 <div className="relative">
                   <img
@@ -144,18 +204,30 @@ const GardenerListingPage = () => {
             ))}
           </div>
 
-          {filteredGardeners.length === 0 && (
+          {paginatedGardeners.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-600 text-lg">لا توجد نتائج للبحث الحالي</p>
               <Button 
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedLocation('');
+                  setCurrentPage(1);
+                  setSearchParams({});
                 }}
                 className="mt-4 bg-[#4CAF50] hover:bg-[#45a049]"
               >
                 إعادة تعيين البحث
               </Button>
+            </div>
+          )}
+
+          {totalPages > 1 && paginatedGardeners.length > 0 && (
+            <div className="mt-12">
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             </div>
           )}
         </div>

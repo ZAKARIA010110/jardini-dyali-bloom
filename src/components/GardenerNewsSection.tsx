@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/useAuth';
 import { useLanguage } from '@/context/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { PostCard } from './news/PostCard';
+import { PaginationControls } from './ui/pagination-controls';
 import { samplePosts, sampleComments } from './news/sampleData';
 import { formatDate, formatTime } from './news/utils';
 
@@ -37,24 +39,45 @@ interface Comment {
   avatar_url?: string;
 }
 
+const POSTS_PER_PAGE = 10;
+
 const GardenerNewsSection = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<GardenerPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [showComments, setShowComments] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState<{ [postId: string]: Comment[] }>({});
-  const [showShareMenu, setShowShareMenu] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Get current page from URL params
+  useEffect(() => {
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    setCurrentPage(page);
+  }, [searchParams]);
 
   useEffect(() => {
-    // Simulate loading and use sample data
+    // Simulate loading and use sample data with pagination
     setTimeout(() => {
-      setPosts(samplePosts);
+      const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+      const endIndex = startIndex + POSTS_PER_PAGE;
+      const paginatedPosts = samplePosts.slice(startIndex, endIndex);
+      
+      setPosts(paginatedPosts);
       setComments(sampleComments);
+      setTotalPages(Math.ceil(samplePosts.length / POSTS_PER_PAGE));
       setLoading(false);
     }, 1000);
-  }, []);
+  }, [currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSearchParams({ page: page.toString() });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleLike = async (postId: string) => {
     if (!user) return;
@@ -138,28 +161,7 @@ const GardenerNewsSection = () => {
   };
 
   const handleShare = (post: GardenerPost, platform?: string) => {
-    const postUrl = `${window.location.origin}/news#post-${post.id}`;
-    const shareText = `شاهد هذا المنشور من ${post.gardener.name}: ${post.content.substring(0, 100)}...`;
-
-    if (platform === 'facebook') {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`, '_blank');
-    } else if (platform === 'twitter') {
-      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(postUrl)}`, '_blank');
-    } else if (platform === 'linkedin') {
-      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`, '_blank');
-    } else if (platform === 'whatsapp') {
-      window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + postUrl)}`, '_blank');
-    } else if (platform === 'copy') {
-      navigator.clipboard.writeText(postUrl);
-      toast({
-        title: "تم نسخ الرابط",
-        description: "تم نسخ رابط المنشور إلى الحافظة",
-      });
-      setShowShareMenu(null);
-    } else {
-      // Toggle share menu
-      setShowShareMenu(showShareMenu === post.id ? null : post.id);
-    }
+    // Share functionality is now handled in ShareMenu component
   };
 
   if (loading) {
@@ -188,7 +190,6 @@ const GardenerNewsSection = () => {
             post={post}
             comments={comments[post.id] || []}
             showComments={showComments === post.id}
-            showShareMenu={showShareMenu === post.id}
             newComment={newComment}
             onLike={handleLike}
             onComment={handleComment}
@@ -204,6 +205,16 @@ const GardenerNewsSection = () => {
       {posts.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-600 text-lg">لا توجد منشورات حتى الآن</p>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-12">
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       )}
     </div>

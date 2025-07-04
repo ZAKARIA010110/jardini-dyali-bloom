@@ -4,7 +4,6 @@ import { Card, CardContent } from '../ui/card';
 import { GardenerHeader } from './GardenerHeader';
 import { PostInteractions } from './PostInteractions';
 import { CommentSection } from './CommentSection';
-import { ShareMenu } from './ShareMenu';
 
 interface GardenerPost {
   id: string;
@@ -39,7 +38,6 @@ interface PostCardProps {
   post: GardenerPost;
   comments: Comment[];
   showComments: boolean;
-  showShareMenu: boolean;
   newComment: string;
   onLike: (postId: string) => void;
   onComment: (postId: string) => void;
@@ -54,7 +52,6 @@ export const PostCard: React.FC<PostCardProps> = ({
   post,
   comments,
   showComments,
-  showShareMenu,
   newComment,
   onLike,
   onComment,
@@ -115,15 +112,8 @@ export const PostCard: React.FC<PostCardProps> = ({
           <PostInteractions
             post={post}
             comments={comments}
-            showShareMenu={showShareMenu}
             onLike={onLike}
             onComment={onComment}
-            onShare={onShare}
-          />
-
-          <ShareMenu
-            post={post}
-            showShareMenu={showShareMenu}
             onShare={onShare}
           />
 

@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
+import { ShareMenu } from './ShareMenu';
 
 interface GardenerPost {
   id: string;
@@ -34,7 +35,6 @@ interface Comment {
 interface PostInteractionsProps {
   post: GardenerPost;
   comments: Comment[];
-  showShareMenu: boolean;
   onLike: (postId: string) => void;
   onComment: (postId: string) => void;
   onShare: (post: GardenerPost, platform?: string) => void;
@@ -43,7 +43,6 @@ interface PostInteractionsProps {
 export const PostInteractions: React.FC<PostInteractionsProps> = ({
   post,
   comments,
-  showShareMenu,
   onLike,
   onComment,
   onShare,
@@ -71,13 +70,7 @@ export const PostInteractions: React.FC<PostInteractionsProps> = ({
           <span>{comments.length || post.comments_count}</span>
         </button>
 
-        <button
-          onClick={() => onShare(post)}
-          className="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 hover:text-green-500 transition-colors"
-        >
-          <Share2 className="w-5 h-5" />
-          <span>مشاركة</span>
-        </button>
+        <ShareMenu post={post} onShare={onShare} />
       </div>
     </div>
   );
