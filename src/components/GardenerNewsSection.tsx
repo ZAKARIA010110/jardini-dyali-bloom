@@ -183,6 +183,15 @@ const GardenerNewsSection = () => {
         </p>
       </div>
 
+      {/* Posts count info */}
+      {totalPages > 1 && (
+        <div className="mb-6 text-center">
+          <p className="text-gray-600">
+            صفحة {currentPage} من {totalPages} - عرض {posts.length} من {samplePosts.length} منشور
+          </p>
+        </div>
+      )}
+
       <div className="space-y-8">
         {posts.map((post) => (
           <PostCard
@@ -208,6 +217,7 @@ const GardenerNewsSection = () => {
         </div>
       )}
 
+      {/* Always show pagination if there are multiple pages */}
       {totalPages > 1 && (
         <div className="mt-12">
           <PaginationControls

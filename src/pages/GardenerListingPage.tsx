@@ -221,8 +221,9 @@ const GardenerListingPage = () => {
             </div>
           )}
 
-          {totalPages > 1 && paginatedGardeners.length > 0 && (
-            <div className="mt-12">
+          {/* Always show pagination if there are multiple pages */}
+          {totalPages > 1 && (
+            <div className="mt-8">
               <PaginationControls
                 currentPage={currentPage}
                 totalPages={totalPages}

@@ -2,14 +2,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './button';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from './pagination';
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -71,58 +63,62 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
     return pages;
   };
 
+  // Always show pagination if there's more than 1 page
   if (totalPages <= 1) return null;
 
   return (
-    <div className={`flex items-center justify-center space-x-2 rtl:space-x-reverse ${className}`}>
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-              className="flex items-center space-x-1 rtl:space-x-reverse"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>السابق</span>
-            </Button>
-          </PaginationItem>
+    <div className={`flex flex-col items-center justify-center space-y-4 py-8 ${className}`}>
+      {/* Page info */}
+      <div className="text-sm text-gray-600">
+        صفحة {currentPage} من {totalPages}
+      </div>
+      
+      {/* Pagination controls */}
+      <div className="flex items-center justify-center space-x-2 rtl:space-x-reverse">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handlePrevious}
+          disabled={currentPage === 1}
+          className="flex items-center space-x-1 rtl:space-x-reverse px-4 py-2"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span>السابق</span>
+        </Button>
 
+        <div className="flex items-center space-x-1 rtl:space-x-reverse">
           {getVisiblePages().map((page, index) => (
-            <PaginationItem key={index}>
+            <div key={index}>
               {page === '...' ? (
-                <span className="px-3 py-1 text-gray-500">...</span>
+                <span className="px-3 py-2 text-gray-500">...</span>
               ) : (
-                <PaginationLink
+                <Button
+                  variant={page === currentPage ? "default" : "outline"}
+                  size="sm"
                   onClick={() => onPageChange(page as number)}
-                  isActive={page === currentPage}
-                  className="cursor-pointer"
+                  className={`px-3 py-2 min-w-[40px] ${
+                    page === currentPage 
+                      ? 'bg-[#4CAF50] text-white hover:bg-[#45a049]' 
+                      : 'hover:bg-gray-50'
+                  }`}
                 >
                   {page}
-                </PaginationLink>
+                </Button>
               )}
-            </PaginationItem>
+            </div>
           ))}
+        </div>
 
-          <PaginationItem>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNext}
-              disabled={currentPage === totalPages}
-              className="flex items-center space-x-1 rtl:space-x-reverse"
-            >
-              <span>التالي</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-      
-      <div className="text-sm text-gray-600 mr-4">
-        صفحة {currentPage} من {totalPages}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleNext}
+          disabled={currentPage === totalPages}
+          className="flex items-center space-x-1 rtl:space-x-reverse px-4 py-2"
+        >
+          <span>التالي</span>
+          <ChevronRight className="w-4 h-4" />
+        </Button>
       </div>
     </div>
   );
