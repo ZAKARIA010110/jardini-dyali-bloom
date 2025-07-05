@@ -27,7 +27,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
             <img 
-              src="/lovable-uploads/fc834d8b-6d31-44df-a0c8-2d9c1dc2eba2.png" 
+              src="/lovable-uploads/beceec2b-ac95-439a-806f-b0827e74d969.png" 
               alt="Jardini Dyali Logo" 
               className="h-12 w-auto object-contain"
             />
