@@ -42,7 +42,7 @@ function App() {
               <Route path="/email-verification" element={<EmailVerificationPage />} />
               <Route path="/dashboard" element={<UserDashboard />} />
               <Route path="/gardeners" element={<GardenerListingPage />} />
-              <Route path="/gardener/:id" element={<GardenerProfilePage />} />
+              <Route path="/gardeners/:id" element={<GardenerProfilePage />} />
               <Route path="/become-gardener" element={<BecomeGardenerPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/contact" element={<ContactPage />} />
