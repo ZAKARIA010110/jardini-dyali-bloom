@@ -5,6 +5,7 @@ import { mockGardeners } from '../data/gardeners';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Star, MapPin, Clock, MessageCircle, Calendar, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
@@ -14,7 +15,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 const GardenerProfilePage = () => {
   const { id } = useParams();
   const { t } = useLanguage();
-  const [showBookingForm, setShowBookingForm] = useState(false);
+  
   const [showChatModal, setShowChatModal] = useState(false);
   const [bookingData, setBookingData] = useState({
     service: '',
@@ -74,7 +75,6 @@ const GardenerProfilePage = () => {
     }
 
     toast.success('تم إرسال طلب الحجز بنجاح! سيتواصل معك البستاني قريباً.');
-    setShowBookingForm(false);
     setBookingData({ service: '', date: '', time: '', description: '' });
   };
 
@@ -212,33 +212,22 @@ const GardenerProfilePage = () => {
             <div className="space-y-6">
               {/* Booking Card */}
               <div className="bg-white rounded-2xl shadow-lg p-6">
-                {!showBookingForm ? (
-                  <>
-                    <div className="text-center mb-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">احجز خدمة مع {gardener.name}</h3>
-                      <p className="text-gray-600">احجز الآن وسيتم التواصل معك خلال 24 ساعة</p>
-                    </div>
-                    
-                    <Button
-                      className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg flex items-center justify-center space-x-2 rtl:space-x-reverse mb-4"
-                      onClick={() => setShowBookingForm(true)}
-                    >
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">احجز خدمة مع {gardener.name}</h3>
+                  <p className="text-gray-600">احجز الآن وسيتم التواصل معك خلال 24 ساعة</p>
+                </div>
+                
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-semibold py-3 text-lg flex items-center justify-center space-x-2 rtl:space-x-reverse mb-4">
                       <Calendar className="w-5 h-5" />
                       <span>احجز الآن</span>
                     </Button>
-                    
-                    <Button
-                      variant="outline"
-                      className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white font-semibold py-3 flex items-center justify-center space-x-2 rtl:space-x-reverse"
-                      onClick={handleChatOpen}
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      <span>دردش مع البستاني</span>
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">حجز خدمة</h3>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold text-gray-900 text-right">حجز خدمة مع {gardener.name}</DialogTitle>
+                    </DialogHeader>
                     
                     <form onSubmit={handleBookingSubmit} className="space-y-4">
                       <div>
@@ -307,18 +296,19 @@ const GardenerProfilePage = () => {
                         >
                           إرسال الطلب
                         </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="border-gray-300 text-gray-700"
-                          onClick={() => setShowBookingForm(false)}
-                        >
-                          إلغاء
-                        </Button>
                       </div>
                     </form>
-                  </>
-                )}
+                  </DialogContent>
+                </Dialog>
+                
+                <Button
+                  variant="outline"
+                  className="w-full border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white font-semibold py-3 flex items-center justify-center space-x-2 rtl:space-x-reverse"
+                  onClick={handleChatOpen}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span>دردش مع البستاني</span>
+                </Button>
               </div>
               
               {/* Info Card */}
@@ -350,7 +340,7 @@ const GardenerProfilePage = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">بستانيون مشابهون</h3>
                 
                 <div className="space-y-4">
-                  {mockGardeners.filter(g => g.id !== gardener.id).slice(0, 3).map((g) => (
+                  {mockGardeners.filter(g => g.id !== gardener.id && g.location === gardener.location).slice(0, 3).map((g) => (
                     <Link 
                       to={`/gardeners/${g.id}`} 
                       key={g.id}
