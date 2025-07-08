@@ -6,8 +6,11 @@ import { useLanguage } from '../context/LanguageContext';
 import { mockGardeners } from '../data/gardeners';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { PaginationControls } from '../components/ui/pagination-controls';
-import { Star, MapPin, Search, Filter } from 'lucide-react';
+import { Star, MapPin, Search, Filter, Calendar } from 'lucide-react';
+import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LanguageSwitcher from '../components/LanguageSwitcher';
@@ -22,6 +25,12 @@ const GardenerListingPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [paginatedGardeners, setPaginatedGardeners] = useState(mockGardeners);
+  const [bookingData, setBookingData] = useState({
+    service: '',
+    date: '',
+    time: '',
+    description: ''
+  });
 
   const locations = ['الرباط', 'الدار البيضاء', 'فاس', 'مراكش', 'أكادير', 'طنجة'];
 
@@ -80,6 +89,18 @@ const GardenerListingPage = () => {
     const matchesLocation = !selectedLocation || gardener.location === selectedLocation;
     return matchesSearch && matchesLocation;
   }).length;
+
+  const handleBookingSubmit = (e: React.FormEvent, gardener: any) => {
+    e.preventDefault();
+    
+    if (!bookingData.service || !bookingData.date || !bookingData.time) {
+      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+
+    toast.success(`تم إرسال طلب الحجز مع ${gardener.name} بنجاح! سيتواصل معك البستاني قريباً.`);
+    setBookingData({ service: '', date: '', time: '', description: '' });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -193,11 +214,90 @@ const GardenerListingPage = () => {
                         {t('marketplace.view.profile')}
                       </Button>
                     </Link>
-                    <Link to={`/gardeners/${gardener.id}`} className="flex-1">
-                      <Button className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white">
-                        {t('marketplace.book.now')}
-                      </Button>
-                    </Link>
+                    
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="flex-1 bg-[#4CAF50] hover:bg-[#45a049] text-white">
+                          <Calendar className="w-4 h-4 ml-1" />
+                          احجز الآن
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold text-gray-900 text-right">حجز خدمة مع {gardener.name}</DialogTitle>
+                        </DialogHeader>
+                        
+                        <form onSubmit={(e) => handleBookingSubmit(e, gardener)} className="space-y-4">
+                          <div>
+                            <Label htmlFor={`service-${gardener.id}`} className="text-gray-700 font-medium">
+                              اختر الخدمة
+                            </Label>
+                            <select
+                              id={`service-${gardener.id}`}
+                              value={bookingData.service}
+                              onChange={(e) => setBookingData({...bookingData, service: e.target.value})}
+                              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#4CAF50] focus:border-[#4CAF50] text-right"
+                              required
+                            >
+                              <option value="">اختر الخدمة</option>
+                              {gardener.services.map((service, index) => (
+                                <option key={index} value={service}>{service}</option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`date-${gardener.id}`} className="text-gray-700 font-medium">
+                              تاريخ الخدمة
+                            </Label>
+                            <Input
+                              id={`date-${gardener.id}`}
+                              type="date"
+                              value={bookingData.date}
+                              onChange={(e) => setBookingData({...bookingData, date: e.target.value})}
+                              className="mt-1 text-right"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`time-${gardener.id}`} className="text-gray-700 font-medium">
+                              وقت الخدمة
+                            </Label>
+                            <Input
+                              id={`time-${gardener.id}`}
+                              type="time"
+                              value={bookingData.time}
+                              onChange={(e) => setBookingData({...bookingData, time: e.target.value})}
+                              className="mt-1 text-right"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`description-${gardener.id}`} className="text-gray-700 font-medium">
+                              تفاصيل إضافية (اختياري)
+                            </Label>
+                            <textarea
+                              id={`description-${gardener.id}`}
+                              value={bookingData.description}
+                              onChange={(e) => setBookingData({...bookingData, description: e.target.value})}
+                              rows={3}
+                              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#4CAF50] focus:border-[#4CAF50] text-right"
+                            />
+                          </div>
+                          
+                          <div className="pt-4">
+                            <Button
+                              type="submit"
+                              className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white"
+                            >
+                              إرسال الطلب
+                            </Button>
+                          </div>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
