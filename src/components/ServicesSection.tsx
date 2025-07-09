@@ -11,13 +11,13 @@ const ServicesSection = () => {
       icon: <Palette className="w-12 h-12 text-[#4CAF50]" />,
       title: t('services.design.title'),
       description: t('services.design.desc'),
-      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=400&q=80"
+      image: "/lovable-uploads/ca763cb0-7e2f-4971-8375-512478ea0384.png"
     },
     {
       icon: <Scissors className="w-12 h-12 text-[#4CAF50]" />,
       title: t('services.lawn.title'),
       description: t('services.lawn.desc'),
-      image: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=400&q=80"
+      image: "/lovable-uploads/4ba0b545-5414-48f4-b561-e8ce6682c8d0.png"
     },
     {
       icon: <Flower className="w-12 h-12 text-[#4CAF50]" />,
