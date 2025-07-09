@@ -36,7 +36,7 @@ const HeroSection = () => {
             />
             <Link to="/become-gardener">
               <Button size="lg" className="w-full sm:w-auto bg-white text-green-600 hover:bg-gray-100 font-bold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-full">
-                انضم كصاحب منزل
+                انضم كا بستاني
               </Button>
             </Link>
           </div>
