@@ -35,20 +35,26 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8 rtl:space-x-reverse">
-            <Link to="/news" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
-              اخر الأخبار
+            <Link to="/" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+              {t('nav.home')}
             </Link>
             <Link to="/gardeners" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
-              البستانيون
+              {t('nav.gardeners')}
             </Link>
             <Link to="/garden-analysis" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
               تحليل الحديقة
             </Link>
-            <Link to="/faq" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
-              الأسئلة الشائعة
+            <Link to="/become-gardener" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+              {t('nav.become.gardener')}
             </Link>
             <Link to="/contact" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
-              اتصل بنا
+              {t('nav.contact')}
+            </Link>
+            <Link to="/faq" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+              {t('nav.faq')}
+            </Link>
+            <Link to="/news" className="text-gray-700 hover:text-[#4CAF50] transition-colors">
+              آخر الأخبار
             </Link>
             {user && (
               <>
@@ -102,20 +108,26 @@ const Navbar = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && <div className="md:hidden py-4 border-t border-gray-200">
             <div className="flex flex-col space-y-4">
-              <Link to="/news" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
-                اخر الأخبار
+              <Link to="/" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
+                {t('nav.home')}
               </Link>
               <Link to="/gardeners" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
-                البستانيون
+                {t('nav.gardeners')}
               </Link>
               <Link to="/garden-analysis" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
                 تحليل الحديقة
               </Link>
-              <Link to="/faq" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
-                الأسئلة الشائعة
+              <Link to="/become-gardener" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
+                {t('nav.become.gardener')}
               </Link>
               <Link to="/contact" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
-                اتصل بنا
+                {t('nav.contact')}
+              </Link>
+              <Link to="/faq" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
+                {t('nav.faq')}
+              </Link>
+              <Link to="/news" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
+                آخر الأخبار
               </Link>
               {user && (
                 <>
