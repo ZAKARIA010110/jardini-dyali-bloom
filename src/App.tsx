@@ -25,6 +25,7 @@ import JobPostingsPage from './pages/JobPostingsPage';
 import GardenerJobsPage from './pages/GardenerJobsPage';
 import GardenerNewsPage from './pages/GardenerNewsPage';
 import RequestGardenerPage from './pages/RequestGardenerPage';
+import PostJobPage from './pages/PostJobPage';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -55,6 +56,8 @@ function App() {
               <Route path="/gardener-jobs" element={<GardenerJobsPage />} />
               <Route path="/news" element={<GardenerNewsPage />} />
               <Route path="/request-gardener" element={<RequestGardenerPage />} />
+              <Route path="/post-job" element={<PostJobPage />} />
+              <Route path="/gardener-listing" element={<GardenerListingPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Router>

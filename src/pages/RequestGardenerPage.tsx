@@ -83,7 +83,7 @@ const RequestGardenerPage = () => {
                 </div>
               </div>
 
-              <Link to="/job-postings" className="block">
+              <Link to="/post-job" className="block">
                 <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 text-lg">
                   نشر إعلان وظيفة
                 </Button>
@@ -143,7 +143,7 @@ const RequestGardenerPage = () => {
                 </div>
               </div>
 
-              <Link to="/gardeners" className="block">
+              <Link to="/gardener-listing" className="block">
                 <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 text-lg">
                   تصفح البستانيين
                 </Button>
