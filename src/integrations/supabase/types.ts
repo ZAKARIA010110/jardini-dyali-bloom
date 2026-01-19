@@ -14,16 +14,419 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_chat: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          sender_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          sender_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          sender_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          booking_date: string
+          booking_time: string
+          client_id: string
+          completed_at: string | null
+          completion_notes: string | null
+          created_at: string
+          gardener_id: string
+          id: string
+          notes: string | null
+          price: number | null
+          service: string
+          status: Database["public"]["Enums"]["booking_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          booking_date: string
+          booking_time: string
+          client_id: string
+          completed_at?: string | null
+          completion_notes?: string | null
+          created_at?: string
+          gardener_id: string
+          id?: string
+          notes?: string | null
+          price?: number | null
+          service: string
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string
+          booking_time?: string
+          client_id?: string
+          completed_at?: string | null
+          completion_notes?: string | null
+          created_at?: string
+          gardener_id?: string
+          id?: string
+          notes?: string | null
+          price?: number | null
+          service?: string
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_gardener_id_fkey"
+            columns: ["gardener_id"]
+            isOneToOne: false
+            referencedRelation: "gardener_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gardener_applications: {
+        Row: {
+          admin_notes: string | null
+          bio: string | null
+          created_at: string
+          email: string
+          experience: string | null
+          id: string
+          location: string | null
+          name: string
+          phone: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          services: string[] | null
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          bio?: string | null
+          created_at?: string
+          email: string
+          experience?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          phone?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          services?: string[] | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string
+          experience?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          phone?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          services?: string[] | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      gardener_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number | null
+          end_time: string | null
+          gardener_id: string
+          id: string
+          is_available: boolean | null
+          start_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week?: number | null
+          end_time?: string | null
+          gardener_id: string
+          id?: string
+          is_available?: boolean | null
+          start_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number | null
+          end_time?: string | null
+          gardener_id?: string
+          id?: string
+          is_available?: boolean | null
+          start_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gardener_availability_gardener_id_fkey"
+            columns: ["gardener_id"]
+            isOneToOne: false
+            referencedRelation: "gardener_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gardener_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          experience: string | null
+          hourly_rate: number | null
+          id: string
+          is_available: boolean | null
+          languages: string[] | null
+          location: string | null
+          rating: number | null
+          review_count: number | null
+          services: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          experience?: string | null
+          hourly_rate?: number | null
+          id: string
+          is_available?: boolean | null
+          languages?: string[] | null
+          location?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          experience?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_available?: boolean | null
+          languages?: string[] | null
+          location?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gardener_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gardeners: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          email: string | null
+          experience: string | null
+          hourly_rate: number | null
+          id: string
+          languages: string[] | null
+          location: string | null
+          name: string
+          phone: string | null
+          rating: number | null
+          review_count: number | null
+          services: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          experience?: string | null
+          hourly_rate?: number | null
+          id?: string
+          languages?: string[] | null
+          location?: string | null
+          name: string
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          experience?: string | null
+          hourly_rate?: number | null
+          id?: string
+          languages?: string[] | null
+          location?: string | null
+          name?: string
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      post_comments: {
+        Row: {
+          author_name: string | null
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          author_name?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          id: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
+      booking_status:
+        | "pending"
+        | "confirmed"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+      user_type: "homeowner" | "gardener" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +553,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+      booking_status: [
+        "pending",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
+      user_type: ["homeowner", "gardener", "admin"],
+    },
   },
 } as const
