@@ -1,37 +1,10 @@
-
 import React from 'react';
 import { Users, Calendar, MessageSquare } from 'lucide-react';
 import GardenersTab from './GardenersTab';
 import BookingsTab from './BookingsTab';
 import ChatTab from './ChatTab';
 import { useLanguage } from '../../context/LanguageContext';
-
-interface Gardener {
-  id: string;
-  name: string;
-  location: string;
-  bio: string;
-  hourly_rate: number;
-  experience: string;
-  services: string[];
-  rating: number;
-  review_count: number;
-  avatar_url: string;
-  phone: string;
-  email: string;
-  languages: string[];
-}
-
-interface Booking {
-  id: string;
-  client_name: string;
-  gardener_name: string;
-  service: string;
-  booking_date: string;
-  booking_time: string;
-  status: string;
-  price: string;
-}
+import { Gardener, Booking } from '../../types/admin';
 
 interface AdminTabContentProps {
   activeTab: 'gardeners' | 'bookings' | 'chat';
@@ -49,27 +22,9 @@ const AdminTabContent: React.FC<AdminTabContentProps> = ({
   const { language } = useLanguage();
 
   const tabs = [
-    {
-      id: 'gardeners' as const,
-      label: language === 'ar' ? 'البستانيون' : 'Jardiniers',
-      icon: Users,
-      count: gardeners.length,
-      bgColor: 'emerald'
-    },
-    {
-      id: 'bookings' as const,
-      label: language === 'ar' ? 'الحجوزات' : 'Réservations',
-      icon: Calendar,
-      count: bookings.length,
-      bgColor: 'blue'
-    },
-    {
-      id: 'chat' as const,
-      label: language === 'ar' ? 'المحادثات' : 'Messages',
-      icon: MessageSquare,
-      count: null,
-      bgColor: 'purple'
-    }
+    { id: 'gardeners' as const, label: language === 'ar' ? 'البستانيون' : 'Jardiniers', icon: Users, count: gardeners.length },
+    { id: 'bookings' as const, label: language === 'ar' ? 'الحجوزات' : 'Réservations', icon: Calendar, count: bookings.length },
+    { id: 'chat' as const, label: language === 'ar' ? 'المحادثات' : 'Messages', icon: MessageSquare, count: null }
   ];
 
   return (
@@ -79,22 +34,15 @@ const AdminTabContent: React.FC<AdminTabContentProps> = ({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center px-6 py-4 font-medium text-sm transition-colors ${language === 'ar' ? 'flex-row-reverse' : ''} ${
-              activeTab === tab.id
-                ? `border-b-2 border-${tab.bgColor}-500 text-${tab.bgColor}-600 bg-${tab.bgColor}-50`
-                : `text-gray-600 hover:text-${tab.bgColor}-600 hover:bg-gray-50`
+            className={`flex items-center px-6 py-4 font-medium text-sm transition-colors ${
+              activeTab === tab.id ? 'border-b-2 border-green-500 text-green-600 bg-green-50' : 'text-gray-600 hover:text-green-600 hover:bg-gray-50'
             }`}
           >
-            <div className={`flex items-center space-x-3 ${language === 'ar' ? 'space-x-reverse' : ''}`}>
-              <tab.icon className="w-5 h-5 shrink-0" />
-              <span className="font-medium">
-                {tab.label} {tab.count !== null && `(${tab.count})`}
-              </span>
-            </div>
+            <tab.icon className="w-5 h-5 ml-2" />
+            <span>{tab.label} {tab.count !== null && `(${tab.count})`}</span>
           </button>
         ))}
       </div>
-
       <div className="p-6">
         {activeTab === 'gardeners' && <GardenersTab gardeners={gardeners} />}
         {activeTab === 'bookings' && <BookingsTab bookings={bookings} />}

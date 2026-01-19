@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '../ui/button';
 import { Settings, Database, Shield } from 'lucide-react';
@@ -23,7 +22,6 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
     try {
       console.log('Creating admin user...');
       
-      // Create new admin user
       const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email: 'zakariadrk00@gmail.com',
         password: 'admin123456',
@@ -48,6 +46,13 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
 
       if (signupData.user) {
         console.log('Admin user created:', signupData.user.id);
+        
+        // Add admin role to user_roles table
+        await supabase.from('user_roles').insert({
+          user_id: signupData.user.id,
+          role: 'admin'
+        });
+        
         toast.success('تم إنشاء حساب المدير بنجاح! يمكنك الآن تسجيل الدخول');
         setEmail('zakariadrk00@gmail.com');
         setPassword('admin123456');
@@ -62,15 +67,30 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
     try {
       console.log('Making current user admin...');
       
-      const result = await createAdminForCurrentUser();
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (result.success) {
-        toast.success('تم تحويل المستخدم الحالي إلى مدير بنجاح!');
-        // Reload the page to refresh admin status
-        window.location.reload();
-      } else {
-        toast.error('فشل في تحويل المستخدم إلى مدير: ' + result.error);
+      if (!user) {
+        toast.error('يجب تسجيل الدخول أولاً');
+        return;
       }
+      
+      // Add admin role to user_roles table
+      const { error } = await supabase.from('user_roles').insert({
+        user_id: user.id,
+        role: 'admin'
+      });
+      
+      if (error) {
+        if (error.code === '23505') {
+          toast.info('المستخدم لديه صلاحيات المدير بالفعل');
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success('تم تحويل المستخدم الحالي إلى مدير بنجاح!');
+      }
+      
+      window.location.reload();
     } catch (error: any) {
       console.error('Make admin error:', error);
       toast.error('حدث خطأ: ' + error.message);
@@ -82,8 +102,6 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
       console.log('Resetting data...');
       
       // Clear existing data
-      await supabase.from('bookings').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('admin_chat').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('gardeners').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
       // Insert sample gardeners
@@ -154,58 +172,6 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
         console.error('Gardeners insert error:', gardenersError);
       }
 
-      // Insert sample bookings
-      const { error: bookingsError } = await supabase.from('bookings').insert([
-        {
-          id: 'book1111-1111-1111-1111-111111111111',
-          gardener_id: 'aaaa1111-1111-1111-1111-111111111111',
-          client_name: 'أحمد محمد',
-          gardener_name: 'يوسف البستاني',
-          service: 'تصميم الحديقة',
-          booking_date: '2024-06-15',
-          booking_time: '10:00 - 12:00',
-          status: 'مؤكد',
-          price: '500 درهم'
-        },
-        {
-          id: 'book2222-2222-2222-2222-222222222222',
-          gardener_id: 'bbbb2222-2222-2222-2222-222222222222',
-          client_name: 'فاطمة الزهراء',
-          gardener_name: 'محمد الحديقي',
-          service: 'قص العشب',
-          booking_date: '2024-06-16',
-          booking_time: '14:00 - 16:00',
-          status: 'قيد الانتظار',
-          price: '200 درهم'
-        },
-        {
-          id: 'book3333-3333-3333-3333-333333333333',
-          gardener_id: 'cccc3333-3333-3333-3333-333333333333',
-          client_name: 'سارة العلوي',
-          gardener_name: 'أمين الورديغي',
-          service: 'تنظيف وتسميد',
-          booking_date: '2024-06-17',
-          booking_time: '09:00 - 11:30',
-          status: 'مؤكد',
-          price: '350 درهم'
-        },
-        {
-          id: 'book4444-4444-4444-4444-444444444444',
-          gardener_id: 'dddd4444-4444-4444-4444-444444444444',
-          client_name: 'زكريا أمجاد',
-          gardener_name: 'عبدالله الفلاح',
-          service: 'سقي وصيانة',
-          booking_date: '2024-06-18',
-          booking_time: '16:00 - 18:00',
-          status: 'ملغي',
-          price: '250 درهم'
-        }
-      ]);
-
-      if (bookingsError) {
-        console.error('Bookings insert error:', bookingsError);
-      }
-
       toast.success('تم إعادة تعيين البيانات بنجاح!');
     } catch (error: any) {
       console.error('Data reset error:', error);
@@ -215,7 +181,6 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* Admin Setup Button - Now visible for setup */}
       <Button
         type="button"
         onClick={handleCreateAdmin}
@@ -227,7 +192,6 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
         إعداد حساب المدير
       </Button>
 
-      {/* Make Current User Admin Button */}
       <Button
         type="button"
         onClick={handleMakeCurrentUserAdmin}
@@ -239,7 +203,6 @@ const AdminDevButtons: React.FC<AdminDevButtonsProps> = ({
         جعل المستخدم الحالي مدير
       </Button>
 
-      {/* Reset Data Button - For development */}
       <Button
         type="button"
         onClick={handleResetData}

@@ -1,21 +1,22 @@
-
 import { supabase } from '../../integrations/supabase/client';
 
 export const makeUserAdmin = async (userId: string) => {
   try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ user_type: 'admin' })
-      .eq('id', userId)
-      .select()
-      .single();
+    // Add admin role to user_roles table
+    const { error } = await supabase
+      .from('user_roles')
+      .insert({ user_id: userId, role: 'admin' });
 
     if (error) {
+      if (error.code === '23505') {
+        // Already has admin role
+        return { success: true, message: 'User already has admin role' };
+      }
       console.error('Error making user admin:', error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: true };
   } catch (err: any) {
     console.error('Error in makeUserAdmin:', err);
     return { success: false, error: err.message };
@@ -24,53 +25,38 @@ export const makeUserAdmin = async (userId: string) => {
 
 export const createAdminProfile = async (userId: string, email: string, name?: string) => {
   try {
-    // First check if profile already exists
-    const { data: existingProfile } = await supabase
+    // First ensure profile exists
+    const { data: existingProfile, error: fetchError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
-    if (existingProfile) {
-      // Update existing profile to admin
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({ 
-          user_type: 'admin',
-          name: name || existingProfile.name,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId)
-        .select()
-        .single();
+    if (fetchError) {
+      console.error('Error fetching profile:', fetchError);
+      return { success: false, error: fetchError.message };
+    }
 
-      if (error) {
-        console.error('Error updating profile to admin:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, data };
-    } else {
-      // Create new admin profile
-      const { data, error } = await supabase
+    if (!existingProfile) {
+      // Create profile - the trigger should have done this, but just in case
+      const { error: insertError } = await supabase
         .from('profiles')
         .insert({
           id: userId,
           name: name || 'Admin User',
-          user_type: 'admin',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+          email: email,
+          user_type: 'admin'
+        });
 
-      if (error) {
-        console.error('Error creating admin profile:', error);
-        return { success: false, error: error.message };
+      if (insertError) {
+        console.error('Error creating profile:', insertError);
+        return { success: false, error: insertError.message };
       }
-
-      return { success: true, data };
     }
+
+    // Add admin role
+    const result = await makeUserAdmin(userId);
+    return result;
   } catch (err: any) {
     console.error('Error in createAdminProfile:', err);
     return { success: false, error: err.message };
@@ -79,19 +65,20 @@ export const createAdminProfile = async (userId: string, email: string, name?: s
 
 export const getAdminProfile = async (userId: string) => {
   try {
+    // Check if user has admin role
     const { data, error } = await supabase
-      .from('profiles')
+      .from('user_roles')
       .select('*')
-      .eq('id', userId)
-      .eq('user_type', 'admin')
-      .single();
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .maybeSingle();
 
     if (error) {
-      console.error('Error fetching admin profile:', error);
+      console.error('Error fetching admin role:', error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: !!data, data };
   } catch (err: any) {
     console.error('Error in getAdminProfile:', err);
     return { success: false, error: err.message };
@@ -102,61 +89,31 @@ export const ensureAdminProfile = async (userId: string) => {
   try {
     console.log('Ensuring admin profile exists for user:', userId);
     
-    // First check if profile exists
-    const { data: existingProfile, error: fetchError } = await supabase
-      .from('profiles')
+    // Check if admin role already exists
+    const { data: existingRole } = await supabase
+      .from('user_roles')
       .select('*')
-      .eq('id', userId)
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    if (existingRole) {
+      return { success: true, data: existingRole };
+    }
+
+    // Add admin role
+    const { data, error } = await supabase
+      .from('user_roles')
+      .insert({ user_id: userId, role: 'admin' })
+      .select()
       .single();
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Error fetching profile:', fetchError);
-      return { success: false, error: fetchError.message };
+    if (error) {
+      console.error('Error creating admin role:', error);
+      return { success: false, error: error.message };
     }
 
-    if (existingProfile) {
-      // Update existing profile to admin if not already
-      if (existingProfile.user_type !== 'admin') {
-        const { data, error } = await supabase
-          .from('profiles')
-          .update({ 
-            user_type: 'admin',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userId)
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Error updating profile to admin:', error);
-          return { success: false, error: error.message };
-        }
-
-        return { success: true, data };
-      }
-      
-      return { success: true, data: existingProfile };
-    } else {
-      // Create new admin profile
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          name: 'Admin User',
-          user_type: 'admin',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating admin profile:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, data };
-    }
+    return { success: true, data };
   } catch (err: any) {
     console.error('Error in ensureAdminProfile:', err);
     return { success: false, error: err.message };
@@ -190,7 +147,6 @@ export const createEmergencyAdmin = async () => {
   try {
     console.log('Creating emergency admin...');
     
-    // Create admin with predefined credentials
     const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email: 'zakariadrk00@gmail.com',
       password: 'admin123456',
@@ -205,11 +161,6 @@ export const createEmergencyAdmin = async () => {
     if (signupError) {
       if (signupError.message.includes('already registered')) {
         console.log('Emergency admin already exists');
-        // Try to ensure profile exists for this user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          return await ensureAdminProfile(user.id);
-        }
         return { success: true, message: 'Emergency admin already exists' };
       }
       return { success: false, error: signupError.message };
