@@ -1,31 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Badge } from '../ui/badge';
-import { Eye, Check, X, Calendar, RefreshCw, AlertCircle } from 'lucide-react';
+import { Eye, Check, X, RefreshCw, AlertCircle } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '../../context/LanguageContext';
+import { Database } from '@/integrations/supabase/types';
 
-interface GardenerApplication {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  experience: string;
-  daily_rate: number;
-  bio: string;
-  services: string[];
-  languages: string[];
-  avatar_url?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  admin_notes?: string;
-  created_at: string;
-}
+type GardenerApplication = Database['public']['Tables']['gardener_applications']['Row'] & {
+  city?: string;
+  daily_rate?: number;
+  languages?: string[];
+};
 
 const GardenerApplicationsTab: React.FC = () => {
   const { language } = useLanguage();
@@ -46,19 +35,14 @@ const GardenerApplicationsTab: React.FC = () => {
     setConnectionError(false);
     
     try {
-      console.log('Fetching applications directly...');
       const { data, error } = await supabase
         .from('gardener_applications')
         .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('Gardener applications data:', data);
-      console.log('Gardener applications error:', error);
-
       if (error) {
         console.error('Supabase error:', error);
         if (error.code === 'PGRST116') {
-          // No RLS policy allows this operation
           toast.error('ليس لديك صلاحية لعرض الطلبات. تأكد من أنك مسجل دخول كمدير.');
           setConnectionError(true);
           return;
@@ -66,13 +50,14 @@ const GardenerApplicationsTab: React.FC = () => {
         throw error;
       }
       
-      // Type the data properly to match our interface
+      // Map data to match our interface
       const typedApplications: GardenerApplication[] = (data || []).map(app => ({
         ...app,
-        status: (app.status as 'pending' | 'approved' | 'rejected') || 'pending'
+        city: app.location || '',
+        daily_rate: 0,
+        languages: []
       }));
       
-      console.log('Typed applications:', typedApplications);
       setApplications(typedApplications);
       setConnectionError(false);
       
@@ -82,12 +67,7 @@ const GardenerApplicationsTab: React.FC = () => {
     } catch (error: any) {
       console.error('Error fetching applications:', error);
       setConnectionError(true);
-      
-      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-        toast.error('مشكلة في الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.');
-      } else {
-        toast.error('خطأ في تحميل الطلبات: ' + (error.message || 'خطأ غير متوقع'));
-      }
+      toast.error('خطأ في تحميل الطلبات: ' + (error.message || 'خطأ غير متوقع'));
     } finally {
       setLoading(false);
     }
@@ -100,8 +80,7 @@ const GardenerApplicationsTab: React.FC = () => {
         .update({
           status,
           admin_notes: notes,
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: null // Would be admin user id in real implementation
+          reviewed_at: new Date().toISOString()
         })
         .eq('id', applicationId);
 
@@ -117,13 +96,12 @@ const GardenerApplicationsTab: React.FC = () => {
               name: application.name,
               email: application.email,
               phone: application.phone,
-              location: application.city,
+              location: application.location,
               experience: application.experience,
-              hourly_rate: Math.round(application.daily_rate / 8), // Convert daily to hourly
+              hourly_rate: Math.round((application.daily_rate || 0) / 8),
               bio: application.bio,
               services: application.services,
               languages: application.languages,
-              avatar_url: application.avatar_url,
               rating: 0,
               review_count: 0
             });
@@ -148,10 +126,10 @@ const GardenerApplicationsTab: React.FC = () => {
   const filteredApplications = applications.filter(app =>
     app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.city.toLowerCase().includes(searchTerm.toLowerCase())
+    (app.location || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | null) => {
     switch (status) {
       case 'pending':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">في الانتظار</Badge>;
@@ -160,7 +138,7 @@ const GardenerApplicationsTab: React.FC = () => {
       case 'rejected':
         return <Badge variant="secondary" className="bg-red-100 text-red-800">مرفوض</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="secondary">{status || 'غير محدد'}</Badge>;
     }
   };
 
@@ -193,9 +171,6 @@ const GardenerApplicationsTab: React.FC = () => {
     );
   }
 
-  console.log('Rendering applications count:', applications.length);
-  console.log('Current applications:', applications);
-
   return (
     <div className="bg-white rounded-lg shadow mb-8">
       <div className="p-6 border-b border-gray-200">
@@ -226,7 +201,6 @@ const GardenerApplicationsTab: React.FC = () => {
               <TableHead className="text-right">الاسم</TableHead>
               <TableHead className="text-right">البريد الإلكتروني</TableHead>
               <TableHead className="text-right">المدينة</TableHead>
-              <TableHead className="text-right">السعر اليومي</TableHead>
               <TableHead className="text-right">الحالة</TableHead>
               <TableHead className="text-right">تاريخ التقديم</TableHead>
               <TableHead className="text-right">الإجراءات</TableHead>
@@ -237,8 +211,7 @@ const GardenerApplicationsTab: React.FC = () => {
               <TableRow key={application.id}>
                 <TableCell className="font-medium text-right">{application.name}</TableCell>
                 <TableCell className="text-right">{application.email}</TableCell>
-                <TableCell className="text-right">{application.city}</TableCell>
-                <TableCell className="text-right">{application.daily_rate} درهم</TableCell>
+                <TableCell className="text-right">{application.location || application.city}</TableCell>
                 <TableCell className="text-right">
                   {getStatusBadge(application.status)}
                 </TableCell>
@@ -263,65 +236,42 @@ const GardenerApplicationsTab: React.FC = () => {
                       </DialogHeader>
                       {selectedApplication && (
                         <div className="space-y-6">
-                          <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                            {selectedApplication.avatar_url && (
-                              <img
-                                src={selectedApplication.avatar_url}
-                                alt={selectedApplication.name}
-                                className="w-20 h-20 rounded-full object-cover"
-                              />
-                            )}
-                            <div className="text-right">
-                              <h3 className="text-xl font-bold">{selectedApplication.name}</h3>
-                              <p className="text-gray-600">{selectedApplication.email}</p>
-                              <p className="text-gray-600">{selectedApplication.phone}</p>
-                              <p className="text-gray-600">{selectedApplication.city}</p>
-                            </div>
+                          <div className="text-right">
+                            <h3 className="text-xl font-bold">{selectedApplication.name}</h3>
+                            <p className="text-gray-600">{selectedApplication.email}</p>
+                            <p className="text-gray-600">{selectedApplication.phone}</p>
+                            <p className="text-gray-600">{selectedApplication.location}</p>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <h4 className="font-semibold mb-2">سنوات الخبرة:</h4>
+                              <h4 className="font-semibold mb-2">الخبرة:</h4>
                               <p className="text-gray-700">{selectedApplication.experience}</p>
                             </div>
+                          </div>
+
+                          {selectedApplication.services && selectedApplication.services.length > 0 && (
                             <div>
-                              <h4 className="font-semibold mb-2">السعر اليومي:</h4>
-                              <p className="text-[#4CAF50] font-bold">{selectedApplication.daily_rate} درهم</p>
+                              <h4 className="font-semibold mb-2">الخدمات المقدمة:</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {selectedApplication.services.map((service: string, index: number) => (
+                                  <span
+                                    key={index}
+                                    className="bg-green-50 text-[#4CAF50] px-3 py-1 rounded-full text-sm"
+                                  >
+                                    {service}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
-                          </div>
+                          )}
 
-                          <div>
-                            <h4 className="font-semibold mb-2">الخدمات المقدمة:</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedApplication.services?.map((service: string, index: number) => (
-                                <span
-                                  key={index}
-                                  className="bg-green-50 text-[#4CAF50] px-3 py-1 rounded-full text-sm"
-                                >
-                                  {service}
-                                </span>
-                              ))}
+                          {selectedApplication.bio && (
+                            <div>
+                              <h4 className="font-semibold mb-2">النبذة الشخصية:</h4>
+                              <p className="text-gray-700 bg-gray-50 p-3 rounded">{selectedApplication.bio}</p>
                             </div>
-                          </div>
-
-                          <div>
-                            <h4 className="font-semibold mb-2">اللغات:</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedApplication.languages?.map((language: string, index: number) => (
-                                <span
-                                  key={index}
-                                  className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm"
-                                >
-                                  {language}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            <h4 className="font-semibold mb-2">النبذة الشخصية:</h4>
-                            <p className="text-gray-700 bg-gray-50 p-3 rounded">{selectedApplication.bio}</p>
-                          </div>
+                          )}
 
                           {selectedApplication.status === 'pending' && (
                             <div className="space-y-4 border-t pt-4">

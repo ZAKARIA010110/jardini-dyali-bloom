@@ -1,29 +1,21 @@
+import { Database } from '@/integrations/supabase/types';
 
-export interface Gardener {
-  id: string;
-  name: string;
-  location: string;
-  bio: string;
-  hourly_rate: number;
-  experience: string;
-  services: string[];
-  rating: number;
-  review_count: number;
-  avatar_url: string;
-  phone: string;
-  email: string;
-  languages: string[];
-}
+export type Gardener = Database['public']['Tables']['gardeners']['Row'];
 
 export interface Booking {
   id: string;
-  client_name: string;
-  gardener_name: string;
+  client_id: string;
+  gardener_id: string;
   service: string;
   booking_date: string;
   booking_time: string;
-  status: string;
-  price: string;
+  status: Database['public']['Enums']['booking_status'] | null;
+  price: number | null;
+  notes?: string | null;
+  completion_notes?: string | null;
+  completed_at?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export type AdminTab = 'dashboard' | 'homeowners' | 'gardeners' | 'applications' | 'bookings' | 'chat' | 'analytics' | 'settings';
