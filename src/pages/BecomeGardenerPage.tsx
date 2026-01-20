@@ -5,11 +5,17 @@ import { useGardenerApplication } from '../hooks/useGardenerApplication';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Upload, Camera } from 'lucide-react';
+import { Upload, Camera, CheckCircle2, XCircle, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../components/ui/accordion';
 
 const BecomeGardenerPage = () => {
   const { t } = useLanguage();
@@ -184,6 +190,119 @@ const BecomeGardenerPage = () => {
             <p className="text-xl text-gray-600">
               ابدأ في تقديم خدماتك وزيادة دخلك مع جارديني ديالي
             </p>
+          </div>
+
+          {/* FAQ Accordion Section */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <Accordion type="single" collapsible className="w-full space-y-2">
+              {/* How to become a gardener */}
+              <AccordionItem value="how-to-join" className="border rounded-lg px-4">
+                <AccordionTrigger className="text-right hover:no-underline py-4">
+                  <span className="font-semibold text-gray-900">كيفاش تولّي بستاني معنا؟</span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <ul className="space-y-3 text-gray-700">
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>سجّل الحساب ديالك معانا</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>عمّر جميع المعلومات المطلوبة</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>حدّد الخدمات والثمن</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>انتظر مراجعة الحساب</span>
+                    </li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Application requirements */}
+              <AccordionItem value="requirements" className="border rounded-lg px-4">
+                <AccordionTrigger className="text-right hover:no-underline py-4">
+                  <span className="font-semibold text-gray-900">شنو خاصني باش يتقبل الطلب ديالي؟</span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <ul className="space-y-3 text-gray-700">
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>الإجابة على جميع الأسئلة</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>معلومات صحيحة</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>تحديد ثمن منطقي لكل خدمة</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                      <span>الطلبات الناقصة لا يتم قبولها</span>
+                    </li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* After acceptance */}
+              <AccordionItem value="after-acceptance" className="border rounded-lg px-4">
+                <AccordionTrigger className="text-right hover:no-underline py-4">
+                  <span className="font-semibold text-gray-900">ماذا بعد قبولك؟</span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <ul className="space-y-3 text-gray-700">
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>يظهر ملفك للزبناء</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>تتوصل بطلبات الحجز</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>تختار الوقت المناسب</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>تشتغل وتكسب تقييمات</span>
+                    </li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* App usage rules */}
+              <AccordionItem value="rules" className="border rounded-lg px-4">
+                <AccordionTrigger className="text-right hover:no-underline py-4">
+                  <span className="font-semibold text-gray-900">قوانين استعمال التطبيق</span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <ul className="space-y-3 text-gray-700">
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>ممنوع تبادل رقم الهاتف</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>ممنوع الاتفاق خارج التطبيق</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>كل شيء يتم داخل Jardini Dyali</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-[#4CAF50] flex-shrink-0" />
+                      <span>احترام الوقت وجودة الخدمة</span>
+                    </li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
 
           {/* Application Form */}
