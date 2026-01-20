@@ -9,13 +9,15 @@ export interface Booking {
   service: string;
   booking_date: string;
   booking_time: string;
-  status: Database['public']['Enums']['booking_status'] | null;
-  price: number | null;
+  status: string;
+  price: string;
   notes?: string | null;
   completion_notes?: string | null;
   completed_at?: string | null;
   created_at: string;
   updated_at: string;
+  client_name: string;
+  gardener_name: string;
 }
 
 export type AdminTab = 'dashboard' | 'homeowners' | 'gardeners' | 'applications' | 'bookings' | 'chat' | 'analytics' | 'settings';
