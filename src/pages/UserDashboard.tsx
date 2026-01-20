@@ -208,12 +208,11 @@ const UserDashboard = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 rtl:space-x-reverse mb-2">
-                              <h3 className="font-semibold text-gray-900">{booking.gardener_name}</h3>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                                {getStatusText(booking.status)}
+                              <h3 className="font-semibold text-gray-900">{booking.service}</h3>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status || '')}`}>
+                                {getStatusText(booking.status || '')}
                               </span>
                             </div>
-                            <p className="text-gray-600 mb-2">{booking.service}</p>
                             <div className="flex items-center space-x-4 rtl:space-x-reverse text-sm text-gray-500">
                               <div className="flex items-center space-x-1 rtl:space-x-reverse">
                                 <Calendar className="w-4 h-4" />
@@ -226,7 +225,7 @@ const UserDashboard = () => {
                             </div>
                           </div>
                           <div className="text-left rtl:text-right">
-                            <p className="text-lg font-bold text-green-600">{booking.price}</p>
+                            <p className="text-lg font-bold text-green-600">{booking.price || 0} درهم</p>
                           </div>
                         </div>
                       </div>

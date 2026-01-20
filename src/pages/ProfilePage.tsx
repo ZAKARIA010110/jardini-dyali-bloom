@@ -68,11 +68,8 @@ const ProfilePage = () => {
       setSaving(true);
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          name,
-          user_type: profile?.user_type || 'homeowner'
-        });
+        .update({ name })
+        .eq('id', user.id);
 
       if (error) throw error;
 
