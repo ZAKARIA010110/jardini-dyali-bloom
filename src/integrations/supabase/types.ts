@@ -249,6 +249,47 @@ export type Database = {
           },
         ]
       }
+      gardener_reviews: {
+        Row: {
+          client_id: string
+          client_name: string | null
+          comment: string | null
+          created_at: string
+          gardener_id: string
+          id: string
+          rating: number
+          service: string | null
+        }
+        Insert: {
+          client_id: string
+          client_name?: string | null
+          comment?: string | null
+          created_at?: string
+          gardener_id: string
+          id?: string
+          rating: number
+          service?: string | null
+        }
+        Update: {
+          client_id?: string
+          client_name?: string | null
+          comment?: string | null
+          created_at?: string
+          gardener_id?: string
+          id?: string
+          rating?: number
+          service?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gardener_reviews_gardener_id_fkey"
+            columns: ["gardener_id"]
+            isOneToOne: false
+            referencedRelation: "gardener_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gardeners: {
         Row: {
           avatar_url: string | null
