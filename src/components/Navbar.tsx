@@ -111,12 +111,12 @@ const Navbar = () => {
 
                     {/* Profile Link */}
                     <Link 
-                      to="/profile" 
+                      to={profile?.user_type === 'gardener' ? '/gardener-profile' : '/profile'} 
                       className="flex items-center space-x-2 rtl:space-x-reverse px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors" 
                       onClick={() => setIsProfileMenuOpen(false)}
                     >
                       <User className="w-4 h-4" />
-                      <span>{t('nav.profile')}</span>
+                      <span>{profile?.user_type === 'gardener' ? 'ملفي الشخصي' : t('nav.profile')}</span>
                     </Link>
 
                     {/* Logout */}
@@ -195,8 +195,8 @@ const Navbar = () => {
                     {getDashboardLabel()}
                   </Link>
                   
-                  <Link to="/profile" className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
-                    {t('nav.profile')}
+                  <Link to={profile?.user_type === 'gardener' ? '/gardener-profile' : '/profile'} className="text-gray-700 hover:text-[#4CAF50] transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    {profile?.user_type === 'gardener' ? 'ملفي الشخصي' : t('nav.profile')}
                   </Link>
                   
                   <button 
